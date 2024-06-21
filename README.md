@@ -29,7 +29,7 @@ Sport Reserve é um sistema de marcação de reserva de quadras esportivas, perm
 
 1. Clone o repositório:
     ```sh
-    git clone https://github.com/seu-usuario/sport-reserve.git
+    git clone https://github.com/Jadiael1/sport-reserve.git
     cd sport-reserve
     ```
 
