@@ -5,7 +5,7 @@ cd /home/juvhost1/api-sport-reserve.juvhost.com
 
 # Execute comandos de deploy, por exemplo:
 # Instalar dependências do Composer
-composer install --no-dev --optimize-autoloader
+/opt/composer/composer install --no-dev --optimize-autoloader
 
 # Executar migrações
 php artisan migrate --force
