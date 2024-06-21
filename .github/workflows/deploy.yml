@@ -1,0 +1,25 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.VPS_DEPLOY_KEY }}
+
+    - name: Sync files to VPS
+      run: rsync -avz --delete-after -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.VPS_HOST }}:/home/juvhost1/api-sport-reserve.juvhost.com
+
+    - name: Run deployment script on VPS
+      run: ssh -o StrictHostKeyChecking=no ${{ secrets.VPS_HOST }} 'bash -s' < deploy.sh
