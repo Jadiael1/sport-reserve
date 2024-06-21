@@ -22,7 +22,6 @@ class FieldController extends Controller
      *     tags={"Fields"},
      *     summary="Get list of fields",
      *     description="Returns list of fields",
-     *     security={{"bearerAuth": {}}},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -118,7 +117,6 @@ class FieldController extends Controller
      *     tags={"Fields"},
      *     summary="Get field information",
      *     description="Returns field data",
-     *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",

@@ -44,13 +44,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('/{id}', [UserController::class, 'update'])->name('users.update');
         Route::delete('/{id}', [UserController::class, 'destroy'])->name('users.destroy');
     });
+});
 
-    // Rotas para o recurso de campos
-    Route::middleware('AdminMiddleware')->prefix('fields')->group(function () {
-        Route::get('/', [FieldController::class, 'index'])->name('fields.index');
-        Route::post('/', [FieldController::class, 'store'])->name('fields.store');
-        Route::get('/{id}', [FieldController::class, 'show'])->name('fields.show');
-        Route::patch('/{id}', [FieldController::class, 'update'])->name('fields.update');
-        Route::delete('/{id}', [FieldController::class, 'destroy'])->name('fields.destroy');
-    });
+// Rotas para o recurso de campos
+Route::prefix('fields')->group(function () {
+    Route::get('/', [FieldController::class, 'index'])->name('fields.index');
+    Route::middleware(['auth:sanctum', 'AdminMiddleware'])->post('/', [FieldController::class, 'store'])->name('fields.store');
+    Route::get('/{id}', [FieldController::class, 'show'])->name('fields.show');
+    Route::middleware(['auth:sanctum', 'AdminMiddleware'])->patch('/{id}', [FieldController::class, 'update'])->name('fields.update');
+    Route::middleware(['auth:sanctum', 'AdminMiddleware'])->delete('/{id}', [FieldController::class, 'destroy'])->name('fields.destroy');
 });

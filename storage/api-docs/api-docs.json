@@ -327,12 +327,7 @@
                             }
                         }
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
+                }
             },
             "post": {
                 "tags": [
@@ -402,12 +397,7 @@
                     "404": {
                         "description": "Field not found"
                     }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
+                }
             },
             "delete": {
                 "tags": [
@@ -893,26 +883,20 @@
                 "type": "object"
             },
             "StoreReservationRequest": {
-                "title": "Store Reservation Request",
                 "required": [
-                    "user_id",
                     "start_time",
                     "end_time"
                 ],
                 "properties": {
-                    "user_id": {
-                        "description": "ID of the user",
-                        "type": "integer"
-                    },
                     "start_time": {
-                        "description": "Start time of the reservation",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2023-06-30T14:00:00Z"
                     },
                     "end_time": {
-                        "description": "End time of the reservation",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2023-06-30T15:00:00Z"
                     }
                 },
                 "type": "object"
@@ -981,21 +965,20 @@
                 "type": "object"
             },
             "UpdateReservationRequest": {
-                "title": "Update Reservation Request",
+                "required": [
+                    "start_time",
+                    "end_time"
+                ],
                 "properties": {
-                    "user_id": {
-                        "description": "ID of the user",
-                        "type": "integer"
-                    },
                     "start_time": {
-                        "description": "Start time of the reservation",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2023-06-30T14:00:00Z"
                     },
                     "end_time": {
-                        "description": "End time of the reservation",
                         "type": "string",
-                        "format": "date-time"
+                        "format": "date-time",
+                        "example": "2023-06-30T15:00:00Z"
                     }
                 },
                 "type": "object"

@@ -8,7 +8,7 @@ use App\Http\Requests\UpdateReservationRequest;
 use App\Models\Reservation;
 use Exception;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 
 class ReservationController extends Controller
 {
@@ -33,11 +33,16 @@ class ReservationController extends Controller
     public function index()
     {
         try {
-            $reservation = Reservation::paginate();
+            if (Auth::user()->is_admin) {
+                $reservations = Reservation::paginate();
+            } else {
+                $reservations = Reservation::where('user_id', Auth::id())->paginate();
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Reservations successfully recovered.',
-                'data' => $reservation,
+                'data' => $reservations,
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
@@ -86,7 +91,7 @@ class ReservationController extends Controller
 
         try {
             $reservation = Reservation::create([
-                'user_id' => $validatedData['user_id'],
+                'user_id' => Auth::id(),
                 'start_time' => $validatedData['start_time'],
                 'end_time' => $validatedData['end_time'],
             ]);
@@ -140,12 +145,21 @@ class ReservationController extends Controller
         try {
             $reservation = Reservation::findOrFail($id);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Reservation successfully recovered.',
-                'data' => $reservation,
-                'errors' => null
-            ], 200);
+            if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Reservation successfully recovered.',
+                    'data' => $reservation,
+                    'errors' => null
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized access.',
+                    'data' => null,
+                    'errors' => null
+                ], 403);
+            }
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -194,19 +208,28 @@ class ReservationController extends Controller
      */
     public function update(UpdateReservationRequest $request, string $id)
     {
-        // A validação já foi feita pela classe UpdateReservationRequest
         $validatedData = $request->validated();
 
         try {
             $reservation = Reservation::findOrFail($id);
-            $reservation->update($validatedData);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Reservation updated successfully.',
-                'data' => $reservation,
-                'errors' => null
-            ], 200);
+            if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
+                $reservation->update($validatedData);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Reservation updated successfully.',
+                    'data' => $reservation,
+                    'errors' => null
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized access.',
+                    'data' => null,
+                    'errors' => null
+                ], 403);
+            }
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -245,14 +268,24 @@ class ReservationController extends Controller
     {
         try {
             $reservation = Reservation::findOrFail($id);
-            $reservation->delete();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Reservation successfully deleted.',
-                'data' => null,
-                'errors' => null
-            ], 200);
+            if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
+                $reservation->delete();
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Reservation successfully deleted.',
+                    'data' => null,
+                    'errors' => null
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthorized access.',
+                    'data' => null,
+                    'errors' => null
+                ], 403);
+            }
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',

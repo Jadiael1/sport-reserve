@@ -8,26 +8,9 @@ use Illuminate\Validation\Rule;
 /**
  * @OA\Schema(
  *     schema="StoreReservationRequest",
- *     type="object",
- *     title="Store Reservation Request",
- *     required={"user_id", "start_time", "end_time"},
- *     @OA\Property(
- *         property="user_id",
- *         type="integer",
- *         description="ID of the user"
- *     ),
- *     @OA\Property(
- *         property="start_time",
- *         type="string",
- *         format="date-time",
- *         description="Start time of the reservation"
- *     ),
- *     @OA\Property(
- *         property="end_time",
- *         type="string",
- *         format="date-time",
- *         description="End time of the reservation"
- *     )
+ *     required={"start_time", "end_time"},
+ *     @OA\Property(property="start_time", type="string", format="date-time", example="2023-06-30T14:00:00Z"),
+ *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-30T15:00:00Z")
  * )
  */
 class StoreReservationRequest extends FormRequest
@@ -48,7 +31,6 @@ class StoreReservationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => 'required|exists:users,id',
             'start_time' => [
                 'required',
                 'date_format:Y-m-d H:i:s',

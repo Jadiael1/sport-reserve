@@ -8,25 +8,9 @@ use Illuminate\Validation\Rule;
 /**
  * @OA\Schema(
  *     schema="UpdateReservationRequest",
- *     type="object",
- *     title="Update Reservation Request",
- *     @OA\Property(
- *         property="user_id",
- *         type="integer",
- *         description="ID of the user"
- *     ),
- *     @OA\Property(
- *         property="start_time",
- *         type="string",
- *         format="date-time",
- *         description="Start time of the reservation"
- *     ),
- *     @OA\Property(
- *         property="end_time",
- *         type="string",
- *         format="date-time",
- *         description="End time of the reservation"
- *     )
+ *     required={"start_time", "end_time"},
+ *     @OA\Property(property="start_time", type="string", format="date-time", example="2023-06-30T14:00:00Z"),
+ *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-30T15:00:00Z")
  * )
  */
 class UpdateReservationRequest extends FormRequest
@@ -48,7 +32,6 @@ class UpdateReservationRequest extends FormRequest
     {
         $reservationId = $this->route('reservation');
         return [
-            'user_id' => 'sometimes|required|exists:users,id',
             'start_time' => [
                 'sometimes',
                 'required',
@@ -72,8 +55,6 @@ class UpdateReservationRequest extends FormRequest
     public function messages()
     {
         return [
-            'user_id.required' => 'The user ID is required.',
-            'user_id.exists' => 'The user ID must exist in the users table.',
             'start_time.required' => 'The start time is required.',
             'start_time.date_format' => 'The start time must be in the format Y-m-d H:i:s.',
             'start_time.unique' => 'The start time must be unique.',
