@@ -33,10 +33,17 @@
 <script src="{{ l5_swagger_asset($documentation, 'swagger-ui-bundle.js') }}"></script>
 <script src="{{ l5_swagger_asset($documentation, 'swagger-ui-standalone-preset.js') }}"></script>
 <script>
+    function adjustUrlProtocol(url) {
+        // Verifica o protocolo atual da página
+        const currentProtocol = window.location.protocol;
+
+        // Faz o replace do protocolo na URL
+        return url.replace(/^http:|^https:/, currentProtocol);
+    }
     window.onload = function() {
         // Build a system
         console.log("{!! $urlToDocs !!}");
-        const urlToDocs = "{!! $urlToDocs !!}".replace(/^http:\/\//i, 'https://');
+        const urlToDocs = adjustUrlProtocol("{!! $urlToDocs !!}");
         const ui = SwaggerUIBundle({
             dom_id: '#swagger-ui',
             url: urlToDocs,
