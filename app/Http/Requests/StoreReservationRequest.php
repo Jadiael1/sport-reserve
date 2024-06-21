@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Models\Reservation;
 
 /**
  * @OA\Schema(
@@ -34,16 +35,34 @@ class StoreReservationRequest extends FormRequest
             'start_time' => [
                 'required',
                 'date_format:Y-m-d H:i:s',
-                Rule::unique('reservations', 'start_time'),
-                'before:end_time'
+                'before:end_time',
+                function ($attribute, $value, $fail) {
+                    if ($this->isOverlapping($value, $this->end_time)) {
+                        $fail('The reservation times overlap with an existing reservation.');
+                    }
+                }
             ],
             'end_time' => [
                 'required',
                 'date_format:Y-m-d H:i:s',
-                Rule::unique('reservations', 'end_time'),
-                'after:start_time'
+                'after:start_time',
             ],
         ];
+    }
+
+    /**
+     * Check if the reservation times overlap with any existing reservation.
+     */
+    protected function isOverlapping($startTime, $endTime)
+    {
+        return Reservation::where(function ($query) use ($startTime, $endTime) {
+            $query->whereBetween('start_time', [$startTime, $endTime])
+                ->orWhereBetween('end_time', [$startTime, $endTime])
+                ->orWhere(function ($query) use ($startTime, $endTime) {
+                    $query->where('start_time', '<', $startTime)
+                        ->where('end_time', '>', $endTime);
+                });
+        })->exists();
     }
 
     public function messages()
@@ -51,11 +70,9 @@ class StoreReservationRequest extends FormRequest
         return [
             'start_time.required' => 'The start time is required.',
             'start_time.date_format' => 'The start time must be in the format Y-m-d H:i:s.',
-            'start_time.unique' => 'The start time must be unique.',
             'start_time.before' => 'The start time must be before the end time.',
             'end_time.required' => 'The end time is required.',
             'end_time.date_format' => 'The end time must be in the format Y-m-d H:i:s.',
-            'end_time.unique' => 'The end time must be unique.',
             'end_time.after' => 'The end time must be after the start time.',
         ];
     }
