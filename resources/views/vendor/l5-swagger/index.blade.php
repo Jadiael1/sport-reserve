@@ -35,6 +35,7 @@
 <script>
     window.onload = function() {
         // Build a system
+        console.log("{!! $urlToDocs !!}");
         const urlToDocs = "{!! $urlToDocs !!}".replace(/^http:\/\//i, 'https://');
         const ui = SwaggerUIBundle({
             dom_id: '#swagger-ui',
