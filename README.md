@@ -88,9 +88,9 @@ Sport Reserve é um sistema de marcação de reserva de quadras esportivas, perm
 
 ## Documentação da API
 
-A documentação da API está disponível em `/api/documentation`. Para acessá-la, certifique-se de que o servidor está em execução e visite:
+A documentação da API está disponível em `/`. Para acessá-la, certifique-se de que o servidor está em execução e visite:
 ```
-https://api-sport-reserve.juvhost.com/api/documentation
+https://api-sport-reserve.juvhost.com/
 ```
 
 ## Arquivo `.htaccess` para Apache
