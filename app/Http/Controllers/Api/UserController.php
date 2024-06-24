@@ -95,9 +95,11 @@ class UserController extends Controller
                 'is_admin' => $isAdmin,
             ]);
 
+            $user->sendEmailVerificationNotification();
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'User created successfully.',
+                'message' => 'User created successfully. Please check your email to verify your account.',
                 'data' => $user,
                 'errors' => null
             ], 201);

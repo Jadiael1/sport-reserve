@@ -52,6 +52,16 @@ class AuthController extends Controller
      *             @OA\Property(property="data", type="object", nullable=true),
      *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Email not verified",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Email not verified."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
      *     )
      * )
      */
@@ -65,14 +75,22 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             /** @var \App\Models\User $user **/
             $user = Auth::user();
+
+            if (!$user->hasVerifiedEmail()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Email not verified.',
+                    'data' => null,
+                    'errors' => null
+                ], 403);
+            }
+
             $tokenResult = $user->createToken('auth_token');
             $token = $tokenResult->plainTextToken;
 
-            // Definir expiração personalizada (em minutos)
             $expirationMinutes = 60;
             $expiration = Carbon::now()->addMinutes($expirationMinutes);
 
-            // Salvar a expiração no token (opcional)
             $tokenResult->accessToken->expires_at = $expiration;
             $tokenResult->accessToken->save();
 
@@ -81,7 +99,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Login successful.',
-                'data' => array('user' => $user, 'token' => $token, 'token_type' => 'Bearer', 'expires_in' => $expirationInTimezone),
+                'data' => ['user' => $user, 'token' => $token, 'token_type' => 'Bearer', 'expires_in' => $expirationInTimezone],
                 'errors' => null
             ], 200);
         }
@@ -117,13 +135,8 @@ class AuthController extends Controller
      *         description="Registration successful",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="message", type="string", example="Registration successful."),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="user", ref="#/components/schemas/User"),
-     *                 @OA\Property(property="token", type="string", example="example-token"),
-     *                 @OA\Property(property="token_type", type="string", example="Bearer"),
-     *                 @OA\Property(property="expires_in", type="integer", example=3600)
-     *             ),
+     *             @OA\Property(property="message", type="string", example="Registration successful. Please check your email to verify your account."),
+     *             @OA\Property(property="data", ref="#/components/schemas/User"),
      *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
      *     ),
@@ -157,7 +170,10 @@ class AuthController extends Controller
      *         response=200,
      *         description="Logout successful",
      *         @OA\JsonContent(
-     *             @OA\Property(property="message", type="string", example="Logout successful")
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Logout successful."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
      *     )
      * )
@@ -327,11 +343,11 @@ class AuthController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/v1/auth/password/token",
-     *     operationId="getResetToken",
+     *     path="/api/v1/auth/email/resend",
+     *     operationId="resendVerificationEmail",
      *     tags={"Auth"},
-     *     summary="Get password reset token",
-     *     description="Returns a password reset token for the given email",
+     *     summary="Resend email verification link",
+     *     description="Resends the email verification link to the user",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -340,14 +356,11 @@ class AuthController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Password reset token successfully recovered",
+     *         description="Verification link sent",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="message", type="string", example="Password reset token successfully recovered."),
-     *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="token", type="string", example="valid-reset-token"),
-     *                 @OA\Property(property="email", type="string", format="email", example="user@example.com")
-     *             ),
+     *             @OA\Property(property="message", type="string", example="Verification link sent successfully."),
+     *             @OA\Property(property="data", type="object", nullable=true),
      *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
      *     ),
@@ -360,10 +373,20 @@ class AuthController extends Controller
      *             @OA\Property(property="data", type="object", nullable=true),
      *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Email already verified",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Email already verified."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
      *     )
      * )
      */
-    public function getResetToken(Request $request)
+    public function resendVerificationEmail(Request $request)
     {
         $request->validate(['email' => 'required|email']);
         $user = User::where('email', $request->email)->first();
@@ -375,11 +398,100 @@ class AuthController extends Controller
                 'errors' => null
             ], 404);
         }
-        $token = Password::getRepository()->create($user);
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Email already verified.',
+                'data' => null,
+                'errors' => null
+            ], 400);
+        }
+
+        $user->sendEmailVerificationNotification();
         return response()->json([
             'status' => 'success',
-            'message' => 'Password reset token successfully recovered.',
-            'data' => array('token' => $token, 'email' => $request->email),
+            'message' => 'Verification link sent successfully.',
+            'data' => null,
+            'errors' => null
+        ], 200);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/auth/email/verify/{id}",
+     *     operationId="verifyEmail",
+     *     tags={"Auth"},
+     *     summary="Verify email address",
+     *     description="Verify the user's email address",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Parameter(
+     *         name="expires",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="signature",
+     *         in="query",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Email verified successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Email verified successfully."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid or expired verification link",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Invalid or expired verification link."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     )
+     * )
+     */
+    public function verifyEmail(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+
+        if (!hash_equals((string) $request->signature, sha1($user->getEmailForVerification()))) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid verification link.',
+                'data' => null,
+                'errors' => null
+            ], 400);
+        }
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Email already verified.',
+                'data' => null,
+                'errors' => null
+            ], 200);
+        }
+
+        $user->markEmailAsVerified();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Email verified successfully.',
+            'data' => null,
             'errors' => null
         ], 200);
     }

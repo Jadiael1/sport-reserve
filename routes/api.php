@@ -25,13 +25,12 @@ Route::prefix('v1')->group(function () {
         Route::post('/signout', [AuthController::class, 'signout'])->middleware('auth:sanctum');
         Route::get('/user', [AuthController::class, 'user'])->middleware('auth:sanctum');
         Route::prefix('password')->group(function () {
-            Route::post('/token', [AuthController::class, 'getResetToken']);
             Route::post('/email', [AuthController::class, 'sendResetLinkEmail']);
             Route::post('/reset', [AuthController::class, 'reset']);
         });
+        Route::post('/email/resend', [AuthController::class, 'resendVerificationEmail']);
+        Route::get('/email/verify/{id}', [AuthController::class, 'verifyEmail'])->name('verification.verify');
     });
-
-
 
     // Rotas protegidas
     Route::middleware('auth:sanctum')->group(function () {
