@@ -19,3 +19,4 @@ yarn-error.log
 /.vscode
 fix.sh
 fixssh.sh
+/storage/api-docs/api-docs.json
