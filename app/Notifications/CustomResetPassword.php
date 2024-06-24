@@ -37,7 +37,7 @@ class CustomResetPassword extends ResetPasswordNotification
      */
     protected function resetUrl($notifiable)
     {
-        $appUrl = env('SAP_URL', 'localhost');
+        $appUrl = env('SAP_URL');
         return '{$appUrl}/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
     }
 
