@@ -22,10 +22,10 @@ jobs:
         ssh-private-key: ${{ secrets.VPS_DEPLOY_KEY }}
 
     # - name: Test SSH connection
-      # run: ssh -v -o StrictHostKeyChecking=no -p 8647 ${{ secrets.VPS_HOST }} 'echo "SSH connection successful"'
+      # run: ssh -v -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} 'echo "SSH connection successful"'
 
     # - name: Sync files to VPS
-      # run: rsync -avz --delete-after --verbose -e "ssh -p 8647 -o StrictHostKeyChecking=no" --exclude='.git' --exclude='node_modules' --exclude='vendor' --exclude='.env' ./ ${{ secrets.VPS_HOST }}:/home/juvhost1/api-sport-reserve.juvhost.com
+      # run: rsync -avz --delete-after --verbose -e "ssh -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=no" --exclude='.git' --exclude='node_modules' --exclude='vendor' --exclude='.env' ./ ${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_DIR }}
 
     - name: Run deployment script on VPS
-      run: ssh -o StrictHostKeyChecking=no -p 8647 ${{ secrets.VPS_HOST }} 'bash -s' < deploy.sh
+      run: ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} 'bash -s' < deploy.sh
