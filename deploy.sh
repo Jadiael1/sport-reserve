@@ -24,4 +24,4 @@ php artisan view:cache
 # Reiniciar o PHP-FPM (se necessário)
 # sudo systemctl restart php7.4-fpm
 
-#php artisan l5-swagger:generate
+php artisan l5-swagger:generate
