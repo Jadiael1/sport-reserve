@@ -17,7 +17,7 @@ class ReservationController extends Controller
      */
     /**
      * @OA\Get(
-     *     path="/api/reservations",
+     *     path="/api/v1/reservations",
      *     operationId="getReservationsList",
      *     tags={"Reservations"},
      *     summary="Get list of reservations",
@@ -68,7 +68,7 @@ class ReservationController extends Controller
      */
     /**
      * @OA\Post(
-     *     path="/api/reservations",
+     *     path="/api/v1/reservations",
      *     operationId="storeReservation",
      *     tags={"Reservations"},
      *     summary="Store a new reservation",
@@ -117,7 +117,7 @@ class ReservationController extends Controller
      */
     /**
      * @OA\Get(
-     *     path="/api/reservations/{id}",
+     *     path="/api/v1/reservations/{id}",
      *     operationId="getReservationById",
      *     tags={"Reservations"},
      *     summary="Get reservation information",
@@ -183,7 +183,7 @@ class ReservationController extends Controller
      */
     /**
      * @OA\Patch(
-     *     path="/api/reservations/{id}",
+     *     path="/api/v1/reservations/{id}",
      *     operationId="updateReservation",
      *     tags={"Reservations"},
      *     summary="Update an existing reservation",
@@ -245,7 +245,7 @@ class ReservationController extends Controller
      */
     /**
      * @OA\Delete(
-     *     path="/api/reservations/{id}",
+     *     path="/api/v1/reservations/{id}",
      *     operationId="deleteReservation",
      *     tags={"Reservations"},
      *     summary="Delete an existing reservation",

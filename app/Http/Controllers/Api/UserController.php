@@ -17,7 +17,7 @@ class UserController extends Controller
      */
     /**
      * @OA\Get(
-     *     path="/api/users",
+     *     path="/api/v1/users",
      *     operationId="getUsersList",
      *     tags={"Users"},
      *     summary="Get list of users",
@@ -63,7 +63,7 @@ class UserController extends Controller
      */
     /**
      * @OA\Post(
-     *     path="/api/users",
+     *     path="/api/v1/users",
      *     operationId="storeUser",
      *     tags={"Users"},
      *     summary="Store a new user",
@@ -117,7 +117,7 @@ class UserController extends Controller
      */
     /**
      * @OA\Get(
-     *     path="/api/users/{id}",
+     *     path="/api/v1/users/{id}",
      *     operationId="getUserById",
      *     tags={"Users"},
      *     summary="Get user information",
@@ -174,7 +174,7 @@ class UserController extends Controller
      */
     /**
      * @OA\Patch(
-     *     path="/api/users/{id}",
+     *     path="/api/v1/users/{id}",
      *     operationId="updateUser",
      *     tags={"Users"},
      *     summary="Update an existing user",
@@ -228,7 +228,7 @@ class UserController extends Controller
      */
     /**
      * @OA\Delete(
-     *     path="/api/users/{id}",
+     *     path="/api/v1/users/{id}",
      *     operationId="deleteUser",
      *     tags={"Users"},
      *     summary="Delete an existing user",

@@ -17,7 +17,7 @@ class FieldController extends Controller
      */
     /**
      * @OA\Get(
-     *     path="/api/fields",
+     *     path="/api/v1/fields",
      *     operationId="getFieldsList",
      *     tags={"Fields"},
      *     summary="Get list of fields",
@@ -62,7 +62,7 @@ class FieldController extends Controller
      */
     /**
      * @OA\Post(
-     *     path="/api/fields",
+     *     path="/api/v1/fields",
      *     operationId="storeField",
      *     tags={"Fields"},
      *     summary="Store a new field",
@@ -112,7 +112,7 @@ class FieldController extends Controller
      */
     /**
      * @OA\Get(
-     *     path="/api/fields/{id}",
+     *     path="/api/v1/fields/{id}",
      *     operationId="getFieldById",
      *     tags={"Fields"},
      *     summary="Get field information",
@@ -168,7 +168,7 @@ class FieldController extends Controller
      */
     /**
      * @OA\Patch(
-     *     path="/api/fields/{id}",
+     *     path="/api/v1/fields/{id}",
      *     operationId="updateField",
      *     tags={"Fields"},
      *     summary="Update an existing field",
@@ -221,7 +221,7 @@ class FieldController extends Controller
      */
     /**
      * @OA\Delete(
-     *     path="/api/fields/{id}",
+     *     path="/api/v1/fields/{id}",
      *     operationId="deleteField",
      *     tags={"Fields"},
      *     summary="Delete an existing field",
