@@ -3,18 +3,13 @@
     "info": {
         "title": "SportReserve",
         "contact": {
-            "email": "derex@outlook.com.br"
+            "email": "jadiael1@gmail.com"
         },
         "license": {
             "name": "MIT"
         },
         "version": "1.0.0"
     },
-    "servers": [
-        {
-            "url": "https://api-sport-reserve.juvhost.com"
-        }
-    ],
     "paths": {
         "/api/login": {
             "post": {

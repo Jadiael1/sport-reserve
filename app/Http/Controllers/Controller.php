@@ -12,7 +12,7 @@ use Illuminate\Routing\Controller as BaseController;
  *         title="SportReserve",
  *         @OA\License(name="MIT"),
  *         @OA\Contact(
- *             email="derex@outlook.com.br"
+ *             email="jadiael1@gmail.com"
  *         )
  *     ),
  *     @OA\Components(
