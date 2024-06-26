@@ -9,7 +9,8 @@ use App\Models\Reservation;
 /**
  * @OA\Schema(
  *     schema="StoreReservationRequest",
- *     required={"start_time", "end_time"},
+ *     required={"field_id", "start_time", "end_time"},
+ *     @OA\Property(property="field_id", type="integer", example=1),
  *     @OA\Property(property="start_time", type="string", format="date-time", example="2023-06-30T14:00:00Z"),
  *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-30T15:00:00Z")
  * )
@@ -32,12 +33,13 @@ class StoreReservationRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'field_id' => 'required|exists:fields,id',
             'start_time' => [
                 'required',
                 'date_format:Y-m-d H:i:s',
                 'before:end_time',
                 function ($attribute, $value, $fail) {
-                    if ($this->isOverlapping($value, $this->end_time)) {
+                    if ($this->isOverlapping($value, $this->end_time, $this->field_id)) {
                         $fail('The reservation times overlap with an existing reservation.');
                     }
                 }
@@ -53,21 +55,24 @@ class StoreReservationRequest extends FormRequest
     /**
      * Check if the reservation times overlap with any existing reservation.
      */
-    protected function isOverlapping($startTime, $endTime)
+    protected function isOverlapping($startTime, $endTime, $fieldId)
     {
-        return Reservation::where(function ($query) use ($startTime, $endTime) {
-            $query->whereBetween('start_time', [$startTime, $endTime])
-                ->orWhereBetween('end_time', [$startTime, $endTime])
-                ->orWhere(function ($query) use ($startTime, $endTime) {
-                    $query->where('start_time', '<', $startTime)
-                        ->where('end_time', '>', $endTime);
-                });
-        })->exists();
+        return Reservation::where('field_id', $fieldId)
+            ->where(function ($query) use ($startTime, $endTime) {
+                $query->whereBetween('start_time', [$startTime, $endTime])
+                    ->orWhereBetween('end_time', [$startTime, $endTime])
+                    ->orWhere(function ($query) use ($startTime, $endTime) {
+                        $query->where('start_time', '<', $startTime)
+                            ->where('end_time', '>', $endTime);
+                    });
+            })->exists();
     }
 
     public function messages()
     {
         return [
+            'field_id.required' => 'The field ID is required.',
+            'field_id.exists' => 'The selected field ID is invalid.',
             'start_time.required' => 'The start time is required.',
             'start_time.date_format' => 'The start time must be in the format Y-m-d H:i:s.',
             'start_time.before' => 'The start time must be before the end time.',

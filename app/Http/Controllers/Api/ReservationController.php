@@ -34,9 +34,9 @@ class ReservationController extends Controller
     {
         try {
             if (Auth::user()->is_admin) {
-                $reservations = Reservation::paginate();
+                $reservations = Reservation::with('field')->paginate();
             } else {
-                $reservations = Reservation::where('user_id', Auth::id())->paginate();
+                $reservations = Reservation::with('field')->where('user_id', Auth::id())->paginate();
             }
 
             return response()->json([
@@ -92,6 +92,7 @@ class ReservationController extends Controller
         try {
             $reservation = Reservation::create([
                 'user_id' => Auth::id(),
+                'field_id' => $validatedData['field_id'],
                 'start_time' => $validatedData['start_time'],
                 'end_time' => $validatedData['end_time'],
             ]);
@@ -143,7 +144,7 @@ class ReservationController extends Controller
     public function show(string $id)
     {
         try {
-            $reservation = Reservation::findOrFail($id);
+            $reservation = Reservation::with('field')->findOrFail($id);
 
             if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
                 return response()->json([
