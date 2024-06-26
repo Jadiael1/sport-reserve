@@ -14,9 +14,11 @@ return new class extends Migration
         Schema::create('reservations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('field_id');
             $table->datetime('start_time')->unique()->comment("start time scheduling");
             $table->datetime('end_time')->unique()->comment("end time scheduling");
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('field_id')->references('id')->on('fields');
             $table->timestamps();
         });
     }
@@ -28,6 +30,7 @@ return new class extends Migration
     {
         Schema::table('reservations', function (Blueprint $table) {
             $table->dropForeign('reservations_user_id_foreign');
+            $table->dropForeign(['reservations_field_id_foreign']);
         });
         Schema::dropIfExists('reservations');
     }
