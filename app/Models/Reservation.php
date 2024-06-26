@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  *     schema="Reservation",
  *     type="object",
  *     title="Reservation",
- *     required={"user_id", "start_time", "end_time"},
+ *     required={"user_id", "field_id", "start_time", "end_time"},
  *     @OA\Property(
  *         property="id",
  *         type="integer",
@@ -21,6 +21,11 @@ use Illuminate\Database\Eloquent\Model;
  *         property="user_id",
  *         type="integer",
  *         description="ID of the user"
+ *     ),
+ *     @OA\Property(
+ *         property="field_id",
+ *         type="integer",
+ *         description="ID of the field"
  *     ),
  *     @OA\Property(
  *         property="start_time",
@@ -44,7 +49,24 @@ class Reservation extends Model
 
     protected $fillable = [
         'user_id',
+        'field_id',
         'start_time',
         'end_time'
     ];
+
+    /**
+     * Get the field that owns the reservation.
+     */
+    public function field()
+    {
+        return $this->belongsTo(Field::class);
+    }
+
+    /**
+     * Get the user that owns the reservation.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
