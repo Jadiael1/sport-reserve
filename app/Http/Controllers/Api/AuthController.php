@@ -53,6 +53,7 @@ class AuthController extends Controller
      *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
      *     )
+     * )
      */
     public function signin(Request $request)
     {
