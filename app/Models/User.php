@@ -33,6 +33,11 @@ use Laravel\Sanctum\HasApiTokens;
  *         description="Email of the user"
  *     ),
  *     @OA\Property(
+ *         property="email_verified_at",
+ *         type="string",
+ *         description="Informs if the account is active"
+ *     ),
+ *     @OA\Property(
  *         property="cpf",
  *         type="string",
  *         description="CPF of the user"
