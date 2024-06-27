@@ -34,8 +34,11 @@ use Laravel\Sanctum\HasApiTokens;
  *     ),
  *     @OA\Property(
  *         property="email_verified_at",
- *         type="string",
- *         description="Informs if the account is active"
+ *         oneOf={
+ *             @OA\Schema(type="string", format="date-time"),
+ *             @OA\Schema(type="null")
+ *         },
+ *         description="Informs if the account is active or the date the email was verified"
  *     ),
  *     @OA\Property(
  *         property="cpf",
