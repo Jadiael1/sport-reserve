@@ -52,18 +52,7 @@ class AuthController extends Controller
      *             @OA\Property(property="data", type="object", nullable=true),
      *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
-     *     ),
-     *     @OA\Response(
-     *         response=403,
-     *         description="Email not verified",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="status", type="string", example="error"),
-     *             @OA\Property(property="message", type="string", example="Email not verified."),
-     *             @OA\Property(property="data", type="object", nullable=true),
-     *             @OA\Property(property="errors", type="object", nullable=true)
-     *         )
      *     )
-     * )
      */
     public function signin(Request $request)
     {
@@ -76,6 +65,7 @@ class AuthController extends Controller
             /** @var \App\Models\User $user **/
             $user = Auth::user();
 
+            /*
             if (!$user->hasVerifiedEmail()) {
                 return response()->json([
                     'status' => 'error',
@@ -84,6 +74,7 @@ class AuthController extends Controller
                     'errors' => null
                 ], 403);
             }
+            */
 
             $tokenResult = $user->createToken('auth_token');
             $token = $tokenResult->plainTextToken;
