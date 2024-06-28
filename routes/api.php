@@ -35,7 +35,7 @@ Route::prefix('v1')->group(function () {
     // Rotas protegidas
     Route::middleware('auth:sanctum')->group(function () {
         // Rotas para o recurso de reservas
-        Route::middleware('check.active')->prefix('reservations')->group(function () {
+        Route::middleware('verified')->prefix('reservations')->group(function () {
             Route::get('/', [ReservationController::class, 'index'])->name('reservations.index');
             Route::post('/', [ReservationController::class, 'store'])->name('reservations.store');
             Route::get('/{id}', [ReservationController::class, 'show'])->name('reservations.show');
@@ -55,9 +55,9 @@ Route::prefix('v1')->group(function () {
 
     // Rotas para o recurso de campos
     Route::prefix('fields')->group(function () {
-        Route::middleware('check.active')->get('/', [FieldController::class, 'index'])->name('fields.index');
+        Route::middleware('verified')->get('/', [FieldController::class, 'index'])->name('fields.index');
         Route::middleware(['auth:sanctum', 'admin'])->post('/', [FieldController::class, 'store'])->name('fields.store');
-        Route::middleware('check.active')->get('/{id}', [FieldController::class, 'show'])->name('fields.show');
+        Route::middleware('verified')->get('/{id}', [FieldController::class, 'show'])->name('fields.show');
         Route::middleware(['auth:sanctum', 'admin'])->patch('/{id}', [FieldController::class, 'update'])->name('fields.update');
         Route::middleware(['auth:sanctum', 'admin'])->delete('/{id}', [FieldController::class, 'destroy'])->name('fields.destroy');
     });
