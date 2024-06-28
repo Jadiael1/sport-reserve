@@ -55,9 +55,9 @@ Route::prefix('v1')->group(function () {
 
     // Rotas para o recurso de campos
     Route::prefix('fields')->group(function () {
-        Route::middleware('verified')->get('/', [FieldController::class, 'index'])->name('fields.index');
+        Route::get('/', [FieldController::class, 'index'])->name('fields.index');
         Route::middleware(['auth:sanctum', 'admin'])->post('/', [FieldController::class, 'store'])->name('fields.store');
-        Route::middleware('verified')->get('/{id}', [FieldController::class, 'show'])->name('fields.show');
+        Route::get('/{id}', [FieldController::class, 'show'])->name('fields.show');
         Route::middleware(['auth:sanctum', 'admin'])->patch('/{id}', [FieldController::class, 'update'])->name('fields.update');
         Route::middleware(['auth:sanctum', 'admin'])->delete('/{id}', [FieldController::class, 'destroy'])->name('fields.destroy');
     });
