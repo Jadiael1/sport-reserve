@@ -38,6 +38,7 @@ class CustomResetPassword extends ResetPasswordNotification
     protected function resetUrl($notifiable)
     {
         $appUrl = env('SAP_URL', 'https://sport-reserve.juvhost.com');
-        return "{$appUrl}/auth/reset-password?token={$this->token}&email=" . urlencode($notifiable->getEmailForPasswordReset());
+        $email = urlencode($notifiable->getEmailForPasswordReset());
+        return "{$appUrl}/auth/reset-password?token={$this->token}&email={$email}";
     }
 }
