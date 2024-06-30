@@ -19,7 +19,7 @@ class CustomResetPassword extends ResetPasswordNotification
      */
     protected function buildMailMessage($url)
     {
-        $expirationMinutes = config('auth.passwords.'.config('auth.defaults.passwords').'.expire');
+        $expirationMinutes = config('auth.passwords.' . config('auth.defaults.passwords') . '.expire');
         $expiration = Carbon::now()->addMinutes($expirationMinutes)->setTimezone('America/Recife');
         return (new MailMessage)
             ->subject('Notificação de redefinição de senha')
@@ -38,8 +38,6 @@ class CustomResetPassword extends ResetPasswordNotification
     protected function resetUrl($notifiable)
     {
         $appUrl = env('SAP_URL', 'https://sport-reserve.juvhost.com');
-        return '{$appUrl}/auth/reset-password?token=' . $this->token . '&email=' . urlencode($notifiable->getEmailForPasswordReset());
+        return "{$appUrl}/auth/reset-password?token={$this->token}&email={urlencode($notifiable->getEmailForPasswordReset())}";
     }
-
-
 }
