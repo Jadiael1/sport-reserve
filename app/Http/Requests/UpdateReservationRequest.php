@@ -38,7 +38,11 @@ class UpdateReservationRequest extends FormRequest
             'start_time' => [
                 'sometimes',
                 'required',
-                'date_format:Y-m-d H:i:s',
+                function ($attribute, $value, $fail) {
+                    if (!$this->isValidDateFormat($value)) {
+                        $fail('The start time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z.');
+                    }
+                },
                 'before:end_time',
                 function ($attribute, $value, $fail) use ($reservationId) {
                     if ($this->isOverlapping($value, $this->end_time, $this->field_id, $reservationId)) {
@@ -49,7 +53,11 @@ class UpdateReservationRequest extends FormRequest
             'end_time' => [
                 'sometimes',
                 'required',
-                'date_format:Y-m-d H:i:s',
+                function ($attribute, $value, $fail) {
+                    if (!$this->isValidDateFormat($value)) {
+                        $fail('The start time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z.');
+                    }
+                },
                 'after:start_time',
             ],
         ];
@@ -73,6 +81,20 @@ class UpdateReservationRequest extends FormRequest
                 $query->where('id', '!=', $reservationId);
             })
             ->exists();
+    }
+
+    /**
+     * Check if the given date is in a valid format.
+     */
+    protected function isValidDateFormat($date)
+    {
+        $formats = ['Y-m-d H:i:s', 'Y-m-d\TH:i:s.v\Z'];
+        foreach ($formats as $format) {
+            if (\DateTime::createFromFormat($format, $date) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

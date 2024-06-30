@@ -36,7 +36,11 @@ class StoreReservationRequest extends FormRequest
             'field_id' => 'required|exists:fields,id',
             'start_time' => [
                 'required',
-                'date_format:Y-m-d H:i:s',
+                function ($attribute, $value, $fail) {
+                    if (!$this->isValidDateFormat($value)) {
+                        $fail('The start time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z.');
+                    }
+                },
                 'before:end_time',
                 function ($attribute, $value, $fail) {
                     if ($this->isOverlapping($value, $this->end_time, $this->field_id)) {
@@ -46,7 +50,11 @@ class StoreReservationRequest extends FormRequest
             ],
             'end_time' => [
                 'required',
-                'date_format:Y-m-d H:i:s',
+                function ($attribute, $value, $fail) {
+                    if (!$this->isValidDateFormat($value)) {
+                        $fail('The end time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z.');
+                    }
+                },
                 'after:start_time',
             ],
         ];
@@ -66,6 +74,21 @@ class StoreReservationRequest extends FormRequest
                             ->where('end_time', '>', $endTime);
                     });
             })->exists();
+    }
+
+
+    /**
+     * Check if the given date is in a valid format.
+     */
+    protected function isValidDateFormat($date)
+    {
+        $formats = ['Y-m-d H:i:s', 'Y-m-d\TH:i:s.v\Z'];
+        foreach ($formats as $format) {
+            if (\DateTime::createFromFormat($format, $date) !== false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public function messages()
