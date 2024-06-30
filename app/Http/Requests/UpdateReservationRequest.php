@@ -88,7 +88,7 @@ class UpdateReservationRequest extends FormRequest
      */
     protected function isValidDateFormat($date)
     {
-        $formats = ['Y-m-d H:i:s', 'Y-m-d\TH:i:s'];
+        $formats = ['Y-m-d H:i:s', 'Y-m-d\TH:i:s.v\Z', 'Y-m-d\TH:i:s'];
         foreach ($formats as $format) {
             if (\DateTime::createFromFormat($format, $date) !== false) {
                 return true;
