@@ -38,7 +38,7 @@ class StoreReservationRequest extends FormRequest
                 'required',
                 function ($attribute, $value, $fail) {
                     if (!$this->isValidDateFormat($value)) {
-                        $fail('The start time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z.');
+                        $fail('The start time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z or Y-m-d\TH:i:s.');
                     }
                 },
                 'before:end_time',
@@ -52,7 +52,7 @@ class StoreReservationRequest extends FormRequest
                 'required',
                 function ($attribute, $value, $fail) {
                     if (!$this->isValidDateFormat($value)) {
-                        $fail('The end time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z.');
+                        $fail('The end time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z or Y-m-d\TH:i:s.');
                     }
                 },
                 'after:start_time',
