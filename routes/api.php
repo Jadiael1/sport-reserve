@@ -57,7 +57,6 @@ Route::prefix('v1')->group(function () {
     Route::prefix('payments')->group(function () {
         Route::middleware(['auth:sanctum', 'verified'])->post('/reservations/{id}/pay', [PaymentController::class, 'initiatePayment']);
         Route::post('/notify', [PaymentController::class, 'paymentNotification']);
-        Route::get('/notify', [PaymentController::class, 'paymentNotification']);
     });
 
     // Rotas para o recurso de campos
