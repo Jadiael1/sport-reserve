@@ -14,10 +14,10 @@ git pull origin main
 php artisan migrate --force
 
 # Limpar e cachear configuração
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
-
+# php artisan config:cache
+# php artisan route:cache
+# php artisan view:cache
+php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan optimize:clear
 # Reiniciar o servidor web (exemplo para Nginx)
 # sudo systemctl restart nginx
 
