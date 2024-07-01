@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  *     schema="Reservation",
  *     type="object",
  *     title="Reservation",
- *     required={"user_id", "field_id", "start_time", "end_time"},
+ *     required={"user_id", "field_id", "start_time", "end_time", "status"},
  *     @OA\Property(
  *         property="id",
  *         type="integer",
@@ -38,6 +38,11 @@ use Illuminate\Database\Eloquent\Model;
  *         type="string",
  *         format="date-time",
  *         description="End time of the reservation"
+ *     ),
+ *     @OA\Property(
+ *         property="status",
+ *         type="string",
+ *         description="Status of the reservation"
  *     )
  * )
  */

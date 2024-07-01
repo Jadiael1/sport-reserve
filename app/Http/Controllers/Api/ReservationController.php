@@ -9,6 +9,7 @@ use App\Models\Reservation;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class ReservationController extends Controller
 {
@@ -90,6 +91,9 @@ class ReservationController extends Controller
         $validatedData = $request->validated();
 
         try {
+            // Excluir reservas pendentes que passaram 30 minutos
+            $this->cleanupPendingReservations($validatedData['field_id'], $validatedData['start_time'], $validatedData['end_time']);
+
             $reservation = Reservation::create([
                 'user_id' => Auth::id(),
                 'field_id' => $validatedData['field_id'],
@@ -294,6 +298,31 @@ class ReservationController extends Controller
                 'data' => null,
                 'errors' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Cleanup pending reservations older than 30 minutes.
+     */
+    protected function cleanupPendingReservations($fieldId, $startTime, $endTime)
+    {
+        $thresholdTime = Carbon::now()->subMinutes(30);
+
+        $pendingReservations = Reservation::where('field_id', $fieldId)
+            ->where('status', 'pending')
+            ->where(function ($query) use ($startTime, $endTime) {
+                $query->whereBetween('start_time', [$startTime, $endTime])
+                    ->orWhereBetween('end_time', [$startTime, $endTime])
+                    ->orWhere(function ($query) use ($startTime, $endTime) {
+                        $query->where('start_time', '<', $startTime)
+                            ->where('end_time', '>', $endTime);
+                    });
+            })
+            ->where('created_at', '<', $thresholdTime)
+            ->get();
+
+        foreach ($pendingReservations as $reservation) {
+            $reservation->delete();
         }
     }
 }

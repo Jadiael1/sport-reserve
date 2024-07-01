@@ -3,8 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 use App\Models\Reservation;
+use Carbon\Carbon;
 
 /**
  * @OA\Schema(
@@ -65,6 +65,8 @@ class StoreReservationRequest extends FormRequest
      */
     protected function isOverlapping($startTime, $endTime, $fieldId)
     {
+        $this->cleanupPendingReservations($fieldId, $startTime, $endTime);
+
         return Reservation::where('field_id', $fieldId)
             ->where(function ($query) use ($startTime, $endTime) {
                 $query->whereBetween('start_time', [$startTime, $endTime])
@@ -76,6 +78,30 @@ class StoreReservationRequest extends FormRequest
             })->exists();
     }
 
+    /**
+     * Cleanup pending reservations older than 30 minutes.
+     */
+    protected function cleanupPendingReservations($fieldId, $startTime, $endTime)
+    {
+        $thresholdTime = Carbon::now()->subMinutes(30);
+
+        $pendingReservations = Reservation::where('field_id', $fieldId)
+            ->where('status', 'pending')
+            ->where(function ($query) use ($startTime, $endTime) {
+                $query->whereBetween('start_time', [$startTime, $endTime])
+                    ->orWhereBetween('end_time', [$startTime, $endTime])
+                    ->orWhere(function ($query) use ($startTime, $endTime) {
+                        $query->where('start_time', '<', $startTime)
+                            ->where('end_time', '>', $endTime);
+                    });
+            })
+            ->where('created_at', '<', $thresholdTime)
+            ->get();
+
+        foreach ($pendingReservations as $reservation) {
+            $reservation->delete();
+        }
+    }
 
     /**
      * Check if the given date is in a valid format.
