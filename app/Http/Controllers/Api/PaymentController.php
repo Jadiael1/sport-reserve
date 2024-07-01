@@ -57,12 +57,30 @@ class PaymentController extends Controller
      *                 )
      *             )
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Reservation already paid",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Reservation already paid"),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
      *     )
      * )
      */
     public function initiatePayment(Request $request, $id)
     {
         $reservation = Reservation::findOrFail($id);
+        if ($reservation->status === 'paid') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Reservation already paid',
+                'data' => null,
+                'errors' => null
+            ], 422);
+        }
         $user = $reservation->user;
         $field = Field::findOrFail($reservation->field_id);
 
