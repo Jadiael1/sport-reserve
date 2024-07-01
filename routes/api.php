@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FieldController;
+use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -35,9 +36,9 @@ Route::prefix('v1')->group(function () {
     // Rotas protegidas
     Route::middleware('auth:sanctum')->group(function () {
         // Rotas para o recurso de reservas
-        Route::middleware('verified')->prefix('reservations')->group(function () {
+        Route::middleware(['verified'])->prefix('reservations')->group(function () {
             Route::get('/', [ReservationController::class, 'index'])->name('reservations.index');
-            Route::post('/', [ReservationController::class, 'store'])->name('reservations.store');
+            Route::middleware(['verify.payment'])->post('/', [ReservationController::class, 'store'])->name('reservations.store');
             Route::get('/{id}', [ReservationController::class, 'show'])->name('reservations.show');
             Route::patch('/{id}', [ReservationController::class, 'update'])->name('reservations.update');
             Route::delete('/{id}', [ReservationController::class, 'destroy'])->name('reservations.destroy');
@@ -51,6 +52,12 @@ Route::prefix('v1')->group(function () {
             Route::patch('/{id}', [UserController::class, 'update'])->name('users.update');
             Route::delete('/{id}', [UserController::class, 'destroy'])->name('users.destroy');
         });
+    });
+
+    Route::prefix('payments')->group(function () {
+        Route::middleware(['auth:sanctum', 'verified'])->post('/reservations/{id}/pay', [PaymentController::class, 'initiatePayment']);
+        Route::post('/notify', [PaymentController::class, 'paymentNotification']);
+        Route::get('/notify', [PaymentController::class, 'paymentNotification']);
     });
 
     // Rotas para o recurso de campos

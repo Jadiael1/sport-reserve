@@ -3,15 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Field;
 use App\Models\Reservation;
 use App\Models\Payments;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
-use PagSeguro\Configuration\Configure;
-use PagSeguro\Domains\Requests\Payment as PagSeguroPayment;
-use PagSeguro\Library;
-use PagSeguro\Domains\Requests\DirectPayment\Pix as PagSeguroPix;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
@@ -27,29 +26,35 @@ class PaymentController extends Controller
      *         name="id",
      *         in="path",
      *         required=true,
-     *         @OA\Schema(type="integer")
+     *         @OA\Schema(type="integer"),
+     *         description="ID of the reservation"
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Payment URL generated successfully",
+     *         description="Payment link generated successfully",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="string", example="success"),
-     *             @OA\Property(property="message", type="string", example=""),
+     *             @OA\Property(property="message", type="string", example="Payment link generated successfully."),
      *             @OA\Property(property="data", type="object",
-     *                 @OA\Property(property="url", type="string", example="https://pagseguro.uol.com.br/checkout/v2/payment.html?code=EXAMPLE-CODE")
+     *                 @OA\Property(property="url", type="string", example="https://pagamento.sandbox.pagbank.com.br/pagamento?code=example-code")
      *             ),
      *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
      *     ),
      *     @OA\Response(
      *         response=400,
-     *         description="Unexpected response from PagSeguro or other error",
+     *         description="Failed to initiate payment",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="string", example="error"),
-     *             @OA\Property(property="message", type="string", example=""),
+     *             @OA\Property(property="message", type="string", example="Failed to initiate payment"),
      *             @OA\Property(property="data", type="object", nullable=true),
      *             @OA\Property(property="errors", type="object",
-     *                 @OA\Property(property="error", type="string", example="Unexpected response from PagSeguro")
+     *                 @OA\Property(property="error_messages", type="array",
+     *                     @OA\Items(
+     *                         @OA\Property(property="error", type="string", example="invalid_request_body"),
+     *                         @OA\Property(property="description", type="string", example="There are some syntax errors in the request payload. Please check the documentation.")
+     *                     )
+     *                 )
      *             )
      *         )
      *     )
@@ -59,78 +64,76 @@ class PaymentController extends Controller
     {
         $reservation = Reservation::findOrFail($id);
         $user = $reservation->user;
-        try {
-            Library::initialize();
-            Library::cmsVersion()->setName("sport-reserve")->setRelease("0.0.1");
-            Library::moduleVersion()->setName("sport-reserve")->setRelease("0.0.1");
+        $field = Field::findOrFail($reservation->field_id);
 
-            $pagSeguro = new PagSeguroPayment();
-            $pagSeguro->setReference($reservation->id);
+        $startTime = Carbon::parse($reservation->start_time);
+        $endTime = Carbon::parse($reservation->end_time);
 
+        $durationInHours = $startTime->diffInHours($endTime);
+        $totalAmount = $durationInHours * $reservation->field->hourly_rate * 100;
 
-            $pagSeguro->addItems()->withParameters(
-                '0001',
-                'Reservation for field ' . $reservation->field_id,
-                1,
-                (float) $reservation->field->hourly_rate
-            );
-            // $pagSeguro->setSender()->setName($user->name);
-            $pagSeguro->setSender()->setEmail($user->email);
-            $pagSeguro->setCurrency('BRL');
-            $pagSeguro->setRedirectUrl(env('SAP_URL'));
-            $pagSeguro->setSender()->setDocument()->withParameters(
-                'CPF',
-                $user->cpf
-            );
+        $body = array(
+            'customer' => array(
+                'email' => $user->email,
+                'tax_id' => $user->cpf
+            ),
+            'reference_id' => "{$reservation->field_id}-{$reservation->id}-{$user->id}",
+            "customer_modifiable" => true,
+            'items' => array(
+                array(
+                    'reference_id' => "{$reservation->field_id}-{$reservation->id}-{$user->id}",
+                    'name' => "Reserva {$field->name}",
+                    'description' => "Reserva de uma quadra esportiva",
+                    'quantity' => 1,
+                    'unit_amount' => $totalAmount,
+                ),
+            ),
+            'payment_methods' => array(
+                array('type' => "PIX"),
+                array('type' => "debit_card"),
+                array('type' => "credit_card"),
+            ),
+            "payment_methods_configs" => array(
+                array(
+                    "type" => "credit_card",
+                    "config_options" => array(
+                        array(
+                            "option" => "installments_limit",
+                            "value" => "1"
+                        )
+                    )
+                )
+            ),
+            'redirect_url' => env('SAP_URL'),
+            'return_url' => env('SAP_URL'),
+            'soft_descriptor' => 'sport-reserve',
+            'payment_notification_urls' => array(env('APP_URL') . "/api/v1/payments/notify")
+        );
+        $url = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.baseUrlSandBox') . "/checkouts" : config('pagseguro.baseUrl') . "/checkouts";
+        $token = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.tokenSandBox') : config('pagseguro.token');
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer " . $token,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->post($url, $body);
 
-            $onlyCheckoutCode = true;
-            Configure::setEnvironment(config('pagseguro.environment'));
-            Configure::setAccountCredentials(config('pagseguro.email'), config('pagseguro.token'));
-            Configure::setApplicationCredentials(config('pagseguro.appId'), config('pagseguro.appKey'));
-
-            $accountCredentials = Configure::getAccountCredentials();
-            $applicationCredentials = Configure::getAccountCredentials();
-
-            $result = $pagSeguro->register($accountCredentials);
-
-
-            if (is_string($result) && strlen($result)) {
-                return response()->json([
-                    'status' => 'success',
-                    'message' => '',
-                    'data' => array('url' => $result),
-                    'errors' => null
-                ], 200);
-            } else {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => '',
-                    'data' => null,
-                    'errors' => array('error' => 'Unexpected response from PagSeguro')
-                ], 400);
-            }
-        } catch (\Exception $e) {
+        if ($response->successful()) {
+            $responseData = $response->json();
+            $payLink = collect($responseData['links'])->firstWhere('rel', 'PAY')['href'] ?? null;
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment link generated successfully.',
+                'data' => array('url' => $payLink),
+                'errors' => null
+            ], 200);
+        } else {
             return response()->json([
                 'status' => 'error',
-                'message' => '',
-                'data' => $e,
-                'errors' => array('error' => 'Unexpected response from PagSeguro', 'message' => $e->getMessage())
+                'message' => 'Failed to initiate payment',
+                'data' => null,
+                'errors' => $response->json()
             ], 400);
         }
-
-
-
-
-
-
-
-        // $credentials = Configure::setEnvironment(config('pagseguro.environment'))
-        //     ->setAccountCredentials(config('pagseguro.email'), config('pagseguro.token'))
-        //     ->setAppId(config('pagseguro.appId'))
-        //     ->setAppKey(config('pagseguro.appKey'));
-
-
-
     }
 
     /**
@@ -175,33 +178,88 @@ class PaymentController extends Controller
      */
     public function paymentNotification(Request $request)
     {
-        $notificationCode = $request->notificationCode;
+        $notificationCode = $request->input('notificationCode');
+        $notificationType = $request->input('notificationType');
 
-        $credentials = Configure::getAccountCredentials();
-        $response = \PagSeguro\Services\Transactions\Notification::check(
-            $credentials,
-            $notificationCode
-        );
+        // Save request body and URL to a file for debugging/maintenance purposes
+        $dataToSave = [
+            'timestamp' => now()->toDateTimeString(),
+            'url' => $request->fullUrl(),
+            'body' => $request->all()
+        ];
 
-        $reservation = Reservation::find($response->getReference());
-
-        Payments::create([
-            'reservation_id' => $reservation->id,
-            'amount' => $response->getGrossAmount(),
-            'status' => $response->getStatus(),
-            'payment_date' => $response->getDate()
-        ]);
-
-        if ($response->getStatus() == 3) { // 3 = Pago
-            $reservation->status = 'paid';
-            $reservation->save();
-        }
+        Storage::append('pagseguro_notifications.log', json_encode($dataToSave));
 
         return response()->json([
             'status' => 'success',
-            'message' => '',
-            'data' => array('message' => 'Payment notification processed.'),
+            'message' => 'tt',
+            'data' => $dataToSave,
             'errors' => null
         ], 200);
+        /*
+        if ($notificationType !== 'transaction') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid notification type',
+                'data' => null,
+                'errors' => ['error' => 'invalid_notification_type']
+            ], 400);
+        }
+
+        $url = env('PAGSEGURO_ENVIRONMENT') === 'sandbox'
+            ? env('PAGSEGURO_BASE_URL_SANDBOX') . "/v3/transactions/notifications/{$notificationCode}"
+            : env('PAGSEGURO_BASE_URL') . "/v3/transactions/notifications/{$notificationCode}";
+
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer " . config('pagseguro.token'),
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->get($url);
+
+        if ($response->failed()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch transaction details',
+                'data' => null,
+                'errors' => $response->json()
+            ], 400);
+        }
+
+        $transaction = $response->json();
+
+        // Process the transaction details
+        $reservationId = $transaction['reference'];
+        $status = $transaction['status'];
+        $amount = $transaction['grossAmount'];
+
+        $reservation = Reservation::find($reservationId);
+        if ($reservation) {
+            Payments::create([
+                'reservation_id' => $reservation->id,
+                'amount' => $amount,
+                'status' => $status,
+                'payment_date' => now()
+            ]);
+
+            if ($status == 'PAID') {
+                $reservation->status = 'paid';
+                $reservation->save();
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Notification processed successfully.',
+                'data' => ['transactionStatus' => $status],
+                'errors' => null
+            ], 200);
+        } else {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Reservation not found',
+                'data' => null,
+                'errors' => ['error' => 'reservation_not_found']
+            ], 400);
+        }
+        */
     }
 }
