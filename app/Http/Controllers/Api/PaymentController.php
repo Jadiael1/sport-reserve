@@ -180,11 +180,23 @@ class PaymentController extends Controller
     {
         $notificationCode = $request->input('notificationCode');
         $notificationType = $request->input('notificationType');
-
+        $method = '';
+        if ($request->isMethod('post')) {
+            $method = 'POST';
+        } elseif ($request->isMethod('get')) {
+            $method = 'GET';
+        } elseif ($request->isMethod('put')) {
+            $method = 'PUT';
+        } elseif ($request->isMethod('delete')) {
+            $method = 'DELETE';
+        } else {
+            $method = 'OTHER';
+        }
         // Save request body and URL to a file for debugging/maintenance purposes
         $dataToSave = [
             'timestamp' => now()->toDateTimeString(),
             'url' => $request->fullUrl(),
+            'method' => $method,
             'body' => $request->all()
         ];
 
