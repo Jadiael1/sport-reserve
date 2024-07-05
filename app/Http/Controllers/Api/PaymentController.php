@@ -159,48 +159,48 @@ class PaymentController extends Controller
      *     path="/api/v1/payments/notify",
      *     operationId="paymentNotification",
      *     tags={"Payments"},
-     *     summary="Handles payment notifications from PagSeguro",
-     *     description="Handles payment notifications from PagSeguro and updates the reservation status accordingly",
+     *     summary="Handle payment notification from PagSeguro",
+     *     description="Processes payment notifications sent by PagSeguro for various payment methods.",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="id", type="string", example="ORDE_797D6FDC-3E93-4A13-AC03-315AD674ACC0"),
-     *             @OA\Property(property="reference_id", type="string", example="1-9-2"),
-     *             @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-01T18:13:58.341-03:00"),
+     *             @OA\Property(property="id", type="string", example="ORDE_D42855BF-2E21-46E6-AA46-428FA6457180"),
+     *             @OA\Property(property="reference_id", type="string", example="4-37-2"),
+     *             @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-05T13:25:26.142-03:00"),
      *             @OA\Property(property="customer", type="object",
-     *                 @OA\Property(property="name", type="string", example="derex siva"),
+     *                 @OA\Property(property="name", type="string", example="derex script"),
      *                 @OA\Property(property="email", type="string", example="derex@outlook.com.br"),
      *                 @OA\Property(property="tax_id", type="string", example="47756883080"),
      *                 @OA\Property(property="phones", type="array",
-     *                     @OA\Items(type="object",
+     *                     @OA\Items(
      *                         @OA\Property(property="type", type="string", example="MOBILE"),
      *                         @OA\Property(property="country", type="string", example="55"),
      *                         @OA\Property(property="area", type="string", example="81"),
-     *                         @OA\Property(property="number", type="string", example="995207889")
+     *                         @OA\Property(property="number", type="string", example="995544787")
      *                     )
      *                 )
      *             ),
      *             @OA\Property(property="items", type="array",
-     *                 @OA\Items(type="object",
-     *                     @OA\Property(property="reference_id", type="string", example="1-9-2"),
-     *                     @OA\Property(property="name", type="string", example="Reserva campo1"),
+     *                 @OA\Items(
+     *                     @OA\Property(property="reference_id", type="string", example="4-37-2"),
+     *                     @OA\Property(property="name", type="string", example="Reserva Arena Mix"),
      *                     @OA\Property(property="quantity", type="integer", example=1),
-     *                     @OA\Property(property="unit_amount", type="integer", example=2500)
+     *                     @OA\Property(property="unit_amount", type="integer", example=10000)
      *                 )
      *             ),
      *             @OA\Property(property="charges", type="array",
-     *                 @OA\Items(type="object",
-     *                     @OA\Property(property="id", type="string", example="CHAR_0259A44A-EB88-4139-98F9-55B96659B7A5"),
-     *                     @OA\Property(property="reference_id", type="string", example="1-9-2"),
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="string", example="CHAR_5164C4C5-34C5-4FAE-8F24-77D01185555F"),
+     *                     @OA\Property(property="reference_id", type="string", example="4-37-2"),
      *                     @OA\Property(property="status", type="string", example="PAID"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-01T18:14:15.698-03:00"),
-     *                     @OA\Property(property="paid_at", type="string", format="date-time", example="2024-07-01T18:14:17.702-03:00"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-05T13:25:42.958-03:00"),
+     *                     @OA\Property(property="paid_at", type="string", format="date-time", example="2024-07-05T13:25:45.227-03:00"),
      *                     @OA\Property(property="amount", type="object",
-     *                         @OA\Property(property="value", type="integer", example=2500),
+     *                         @OA\Property(property="value", type="integer", example=10000),
      *                         @OA\Property(property="currency", type="string", example="BRL"),
      *                         @OA\Property(property="summary", type="object",
-     *                             @OA\Property(property="total", type="integer", example=2500),
-     *                             @OA\Property(property="paid", type="integer", example=2500),
+     *                             @OA\Property(property="total", type="integer", example=10000),
+     *                             @OA\Property(property="paid", type="integer", example=10000),
      *                             @OA\Property(property="refunded", type="integer", example=0)
      *                         )
      *                     ),
@@ -211,35 +211,23 @@ class PaymentController extends Controller
      *                     @OA\Property(property="payment_method", type="object",
      *                         @OA\Property(property="type", type="string", example="PIX"),
      *                         @OA\Property(property="pix", type="object",
-     *                             @OA\Property(property="notification_id", type="string", example="NTF_A0AC3061-6449-47F3-8066-BBC1C91B3DF7"),
-     *                             @OA\Property(property="end_to_end_id", type="string", example="99e16d24c9aa46d5ae63fb719b16d581"),
+     *                             @OA\Property(property="notification_id", type="string", example="NTF_0801D76D-41C4-46D7-808B-F01CC3EAAA09"),
+     *                             @OA\Property(property="end_to_end_id", type="string", example="a0131388bf714437b515ea871486df06"),
      *                             @OA\Property(property="holder", type="object",
      *                                 @OA\Property(property="name", type="string", example="API-PIX Payer Mock"),
      *                                 @OA\Property(property="tax_id", type="string", example="***931180**")
      *                             )
-     *                         ),
-     *                         @OA\Property(property="card", type="object",
-     *                             @OA\Property(property="brand", type="string", example="amex"),
-     *                             @OA\Property(property="first_digits", type="string", example="374245"),
-     *                             @OA\Property(property="last_digits", type="string", example="0126"),
-     *                             @OA\Property(property="exp_month", type="string", example="5"),
-     *                             @OA\Property(property="exp_year", type="string", example="2026"),
-     *                             @OA\Property(property="holder", type="object",
-     *                                 @OA\Property(property="name", type="string", example="DEREX SILVA"),
-     *                                 @OA\Property(property="tax_id", type="string", example="47756883080")
-     *                             )
      *                         )
-     *                     ),
-     *                     @OA\Property(property="soft_descriptor", type="string", example="sportreserve")
+     *                     )
      *                 )
      *             ),
      *             @OA\Property(property="notification_urls", type="array",
      *                 @OA\Items(type="string", example="https://api-sport-reserve.juvhost.com/api/v1/payments/notify")
      *             ),
      *             @OA\Property(property="links", type="array",
-     *                 @OA\Items(type="object",
+     *                 @OA\Items(
      *                     @OA\Property(property="rel", type="string", example="SELF"),
-     *                     @OA\Property(property="href", type="string", example="https://sandbox.api.pagseguro.com/orders/ORDE_797D6FDC-3E93-4A13-AC03-315AD674ACC0"),
+     *                     @OA\Property(property="href", type="string", example="https://sandbox.api.pagseguro.com/orders/ORDE_D42855BF-2E21-46E6-AA46-428FA6457180"),
      *                     @OA\Property(property="media", type="string", example="application/json"),
      *                     @OA\Property(property="type", type="string", example="GET")
      *                 )
@@ -248,7 +236,7 @@ class PaymentController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Notification processed successfully",
+     *         description="Payment notification processed successfully.",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="string", example="success"),
      *             @OA\Property(property="message", type="string", example="Payment notification processed successfully."),
@@ -261,13 +249,26 @@ class PaymentController extends Controller
      *     ),
      *     @OA\Response(
      *         response=400,
-     *         description="Invalid notification data",
+     *         description="Invalid notification data or other error",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="string", example="error"),
      *             @OA\Property(property="message", type="string", example="Invalid notification data."),
      *             @OA\Property(property="data", type="object", nullable=true),
      *             @OA\Property(property="errors", type="object",
-     *                 @OA\Property(property="error", type="string", example="Validation error")
+     *                 @OA\Property(property="error", type="string", example="Invalid charges data")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Failed to get payment",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to get payment"),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object",
+     *                 @OA\Property(property="error", type="string", example="Failed to get payment"),
+     *                 @OA\Property(property="message", type="string", example="Payment status is not PAID")
      *             )
      *         )
      *     )
@@ -287,7 +288,7 @@ class PaymentController extends Controller
         }
 
         $charge = $data['charges'][0];
-        if (!isset($charge['reference_id'], $charge['status'], $charge['paid_at'])) {
+        if (!isset($charge['id'])) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid notification data.',
@@ -296,34 +297,62 @@ class PaymentController extends Controller
             ], 400);
         }
 
-        $parts = explode('-', $charge['reference_id']);
-        $reservation = Reservation::where('id', $parts[1])->first();
-        if (!$reservation || count($parts) !== 3) {
+        $url = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.baseUrlSandBox') . "/checkouts/" . $charge['id'] : config('pagseguro.baseUrl') . "/checkouts/" . $charge['id'];
+        $token = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.tokenSandBox') : config('pagseguro.token');
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer " . $token,
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ])->get($url);
+
+        if ($response->successful()) {
+            $responseData = $response->json();
+
+            if (!isset($responseData['reference_id'], $responseData['status'], $responseData['paid_at'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid notification data.',
+                    'data' => null,
+                    'errors' => array('error' => 'Missing required charge fields')
+                ], 400);
+            }
+
+            $parts = explode('-', $responseData['reference_id']);
+            $reservation = Reservation::where('id', $parts[1])->first();
+            if (!$reservation || count($parts) !== 3) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Reservation not found.',
+                    'data' => null,
+                    'errors' => array('error' => 'Reservation not found')
+                ], 400);
+            }
+
+            if ($responseData['status'] == 'PAID') {
+                Payments::create([
+                    'reservation_id' => $reservation->id,
+                    'amount' => $responseData['amount']['value'] / 100, // assuming the amount is in cents
+                    'status' => $responseData['status'],
+                    'payment_date' => Carbon::parse($responseData['paid_at'])
+                ]);
+
+                $reservation->status = 'paid';
+                $reservation->save();
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Payment notification processed successfully.',
+                    'data' => array('reservation_id' => $reservation->id, 'status' => $reservation->status),
+                    'errors' => null
+                ], 200);
+            }
+        } else {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Reservation not found.',
+                'message' => 'Failed to get payment',
                 'data' => null,
-                'errors' => array('error' => 'Reservation not found')
-            ], 400);
-        }
-
-        if ($charge['status'] == 'PAID') {
-            Payments::create([
-                'reservation_id' => $reservation->id,
-                'amount' => $charge['amount']['value'] / 100, // assuming the amount is in cents
-                'status' => $charge['status'],
-                'payment_date' => Carbon::parse($charge['paid_at'])
-            ]);
-
-            $reservation->status = 'paid';
-            $reservation->save();
-
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Payment notification processed successfully.',
-                'data' => array('reservation_id' => $reservation->id, 'status' => $reservation->status),
-                'errors' => null
-            ], 200);
+                'errors' => $response->json()
+            ], 404);
         }
 
         return response()->json([
