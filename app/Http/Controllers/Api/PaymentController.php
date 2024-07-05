@@ -168,14 +168,14 @@ class PaymentController extends Controller
      *             @OA\Property(property="reference_id", type="string", example="4-37-2"),
      *             @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-05T13:25:26.142-03:00"),
      *             @OA\Property(property="customer", type="object",
-     *                 @OA\Property(property="name", type="string", example="derex script"),
-     *                 @OA\Property(property="email", type="string", example="derex@outlook.com.br"),
+     *                 @OA\Property(property="name", type="string", example="name surname"),
+     *                 @OA\Property(property="email", type="string", example="email@email.com"),
      *                 @OA\Property(property="tax_id", type="string", example="47756883080"),
      *                 @OA\Property(property="phones", type="array",
      *                     @OA\Items(
      *                         @OA\Property(property="type", type="string", example="MOBILE"),
      *                         @OA\Property(property="country", type="string", example="55"),
-     *                         @OA\Property(property="area", type="string", example="81"),
+     *                         @OA\Property(property="area", type="string", example="61"),
      *                         @OA\Property(property="number", type="string", example="995544787")
      *                     )
      *                 )
