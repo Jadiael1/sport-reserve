@@ -83,7 +83,7 @@ class PaymentController extends Controller
         }
 
         $payment = $reservation->payments()->where('reservation_id', $id)->where('status', 'WAITING')->first();
-        if($payment){
+        if ($payment) {
             return response()->json([
                 'status' => 'success',
                 'message' => 'Payment link generated successfully..',
@@ -291,6 +291,18 @@ class PaymentController extends Controller
      *                 @OA\Property(property="message", type="string", example="Payment status is not PAID")
      *             )
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Payment not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Payment not found."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object",
+     *                 @OA\Property(property="error", type="string", example="Payment not found")
+     *             )
+     *         )
      *     )
      * )
      */
@@ -347,15 +359,24 @@ class PaymentController extends Controller
                 ], 400);
             }
 
+            $payment = $reservation->payments()->where('reservation_id', $reservation->id)->where('status', 'WAITING')->first();
+            if (!$payment) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Payment not found.',
+                    'data' => null,
+                    'errors' => array('error' => 'Payment not found')
+                ], 400);
+            }
+
             if ($responseData['status'] == 'PAID') {
-                Payments::create([
-                    'reservation_id' => $reservation->id,
+                $payment::update([
                     'amount' => $responseData['amount']['value'] / 100, // assuming the amount is in cents
                     'status' => $responseData['status'],
                     'payment_date' => Carbon::parse($responseData['paid_at'])
                 ]);
 
-                $reservation->status = 'paid';
+                $reservation->status = $responseData['status'];
                 $reservation->save();
 
                 return response()->json([
