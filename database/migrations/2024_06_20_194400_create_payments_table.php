@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('reservation_id');
             $table->decimal('amount', 8, 2);
-            $table->string('status');
+            $table->string('status')->default('WAITING');
             $table->timestamp('payment_date');
             $table->string('url');
             $table->timestamps();
