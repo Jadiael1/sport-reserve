@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('field_id');
             $table->datetime('start_time')->unique()->comment("start time scheduling");
             $table->datetime('end_time')->unique()->comment("end time scheduling");
-            $table->string('status')->default('pending');
+            $table->string('status')->default('WAITING');
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('field_id')->references('id')->on('fields');
             $table->timestamps();
