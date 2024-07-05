@@ -15,6 +15,12 @@ class Payments extends Model
         'reservation_id',
         'amount',
         'status',
-        'payment_date'
+        'payment_date',
+        'url'
     ];
+
+    public function reservation()
+    {
+        return $this->belongsTo(Reservation::class);
+    }
 }
