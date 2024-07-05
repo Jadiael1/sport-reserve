@@ -81,6 +81,17 @@ class PaymentController extends Controller
                 'errors' => null
             ], 422);
         }
+
+        $payment = $reservation->payments()->where('reservation_id', $id)->where('status', 'WAITING')->first();
+        if($payment){
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment link generated successfully..',
+                'data' => array('url' => $payment->url),
+                'errors' => null
+            ], 200);
+        }
+
         $user = $reservation->user;
         $field = Field::findOrFail($reservation->field_id);
 
@@ -138,6 +149,15 @@ class PaymentController extends Controller
         if ($response->successful()) {
             $responseData = $response->json();
             $payLink = collect($responseData['links'])->firstWhere('rel', 'PAY')['href'] ?? null;
+
+            Payments::create([
+                'reservation_id' => $reservation->id,
+                'amount' => $totalAmount / 100,
+                'status' => 'WAITING',
+                'url' => $payLink
+            ]);
+
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Payment link generated successfully.',
