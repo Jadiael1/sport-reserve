@@ -17,6 +17,7 @@ return new class extends Migration
             $table->decimal('amount', 8, 2);
             $table->string('status');
             $table->timestamp('payment_date');
+            $table->string('url');
             $table->timestamps();
             $table->foreign('reservation_id')->references('id')->on('reservations')->onDelete('cascade');
         });
