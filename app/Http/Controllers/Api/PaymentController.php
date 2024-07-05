@@ -164,9 +164,9 @@ class PaymentController extends Controller
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="id", type="string", example="ORDE_D42855BF-2E21-46E6-AA46-428FA6457180"),
-     *             @OA\Property(property="reference_id", type="string", example="4-37-2"),
-     *             @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-05T13:25:26.142-03:00"),
+     *             @OA\Property(property="id", type="string", example="ORDE_797D6FDC-3E93-4A13-AC03-315AD674ACC0"),
+     *             @OA\Property(property="reference_id", type="string", example="1-9-2"),
+     *             @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-01T18:13:58.341-03:00"),
      *             @OA\Property(property="customer", type="object",
      *                 @OA\Property(property="name", type="string", example="name surname"),
      *                 @OA\Property(property="email", type="string", example="email@email.com"),
@@ -175,32 +175,32 @@ class PaymentController extends Controller
      *                     @OA\Items(
      *                         @OA\Property(property="type", type="string", example="MOBILE"),
      *                         @OA\Property(property="country", type="string", example="55"),
-     *                         @OA\Property(property="area", type="string", example="61"),
-     *                         @OA\Property(property="number", type="string", example="995544787")
+     *                         @OA\Property(property="area", type="string", example="81"),
+     *                         @OA\Property(property="number", type="string", example="995207889")
      *                     )
      *                 )
      *             ),
      *             @OA\Property(property="items", type="array",
      *                 @OA\Items(
-     *                     @OA\Property(property="reference_id", type="string", example="4-37-2"),
-     *                     @OA\Property(property="name", type="string", example="Reserva Arena Mix"),
+     *                     @OA\Property(property="reference_id", type="string", example="1-9-2"),
+     *                     @OA\Property(property="name", type="string", example="Reserva campo1"),
      *                     @OA\Property(property="quantity", type="integer", example=1),
-     *                     @OA\Property(property="unit_amount", type="integer", example=10000)
+     *                     @OA\Property(property="unit_amount", type="integer", example=2500)
      *                 )
      *             ),
      *             @OA\Property(property="charges", type="array",
      *                 @OA\Items(
-     *                     @OA\Property(property="id", type="string", example="CHAR_5164C4C5-34C5-4FAE-8F24-77D01185555F"),
-     *                     @OA\Property(property="reference_id", type="string", example="4-37-2"),
+     *                     @OA\Property(property="id", type="string", example="CHAR_0259A44A-EB88-4139-98F9-55B96659B7A5"),
+     *                     @OA\Property(property="reference_id", type="string", example="1-9-2"),
      *                     @OA\Property(property="status", type="string", example="PAID"),
-     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-05T13:25:42.958-03:00"),
-     *                     @OA\Property(property="paid_at", type="string", format="date-time", example="2024-07-05T13:25:45.227-03:00"),
+     *                     @OA\Property(property="created_at", type="string", format="date-time", example="2024-07-01T18:14:15.698-03:00"),
+     *                     @OA\Property(property="paid_at", type="string", format="date-time", example="2024-07-01T18:14:17.702-03:00"),
      *                     @OA\Property(property="amount", type="object",
-     *                         @OA\Property(property="value", type="integer", example=10000),
+     *                         @OA\Property(property="value", type="integer", example=2500),
      *                         @OA\Property(property="currency", type="string", example="BRL"),
      *                         @OA\Property(property="summary", type="object",
-     *                             @OA\Property(property="total", type="integer", example=10000),
-     *                             @OA\Property(property="paid", type="integer", example=10000),
+     *                             @OA\Property(property="total", type="integer", example=2500),
+     *                             @OA\Property(property="paid", type="integer", example=2500),
      *                             @OA\Property(property="refunded", type="integer", example=0)
      *                         )
      *                     ),
@@ -211,8 +211,8 @@ class PaymentController extends Controller
      *                     @OA\Property(property="payment_method", type="object",
      *                         @OA\Property(property="type", type="string", example="PIX"),
      *                         @OA\Property(property="pix", type="object",
-     *                             @OA\Property(property="notification_id", type="string", example="NTF_0801D76D-41C4-46D7-808B-F01CC3EAAA09"),
-     *                             @OA\Property(property="end_to_end_id", type="string", example="a0131388bf714437b515ea871486df06"),
+     *                             @OA\Property(property="notification_id", type="string", example="NTF_A0AC3061-6449-47F3-8066-BBC1C91B3DF7"),
+     *                             @OA\Property(property="end_to_end_id", type="string", example="99e16d24c9aa46d5ae63fb719b16d581"),
      *                             @OA\Property(property="holder", type="object",
      *                                 @OA\Property(property="name", type="string", example="API-PIX Payer Mock"),
      *                                 @OA\Property(property="tax_id", type="string", example="***931180**")
@@ -227,7 +227,7 @@ class PaymentController extends Controller
      *             @OA\Property(property="links", type="array",
      *                 @OA\Items(
      *                     @OA\Property(property="rel", type="string", example="SELF"),
-     *                     @OA\Property(property="href", type="string", example="https://sandbox.api.pagseguro.com/orders/ORDE_D42855BF-2E21-46E6-AA46-428FA6457180"),
+     *                     @OA\Property(property="href", type="string", example="https://sandbox.api.pagseguro.com/orders/ORDE_797D6FDC-3E93-4A13-AC03-315AD674ACC0"),
      *                     @OA\Property(property="media", type="string", example="application/json"),
      *                     @OA\Property(property="type", type="string", example="GET")
      *                 )
