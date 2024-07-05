@@ -297,11 +297,10 @@ class PaymentController extends Controller
             ], 400);
         }
 
-        $url = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.baseUrlSandBox') . "/checkouts/" . $charge['id'] : config('pagseguro.baseUrl') . "/checkouts/" . $charge['id'];
+        $url = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.baseUrlSandBox') . "/charges/" . $charge['id'] : config('pagseguro.baseUrl') . "/charges/" . $charge['id'];
         $token = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.tokenSandBox') : config('pagseguro.token');
         $response = Http::withHeaders([
             'Authorization' => "Bearer " . $token,
-            'Content-Type' => 'application/json',
             'Accept' => 'application/json',
         ])->get($url);
 
