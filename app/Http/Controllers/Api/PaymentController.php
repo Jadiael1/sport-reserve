@@ -333,7 +333,7 @@ class PaymentController extends Controller
         $token = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.tokenSandBox') : config('pagseguro.token');
         $response = Http::withHeaders([
             'Authorization' => "Bearer " . $token,
-            'Accept' => 'application/json',
+            'Accept' => '*/*',
         ])->get($url);
 
         if ($response->successful()) {
@@ -370,7 +370,7 @@ class PaymentController extends Controller
             }
 
             if ($responseData['status'] == 'PAID') {
-                $payment::update([
+                $payment->update([
                     'amount' => $responseData['amount']['value'] / 100, // assuming the amount is in cents
                     'status' => $responseData['status'],
                     'payment_date' => Carbon::parse($responseData['paid_at'])
