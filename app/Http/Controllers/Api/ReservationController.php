@@ -309,7 +309,7 @@ class ReservationController extends Controller
         $thresholdTime = Carbon::now()->subMinutes(30);
 
         $pendingReservations = Reservation::where('field_id', $fieldId)
-            ->where('status', 'pending')
+            ->where('status', 'WAITING')
             ->where(function ($query) use ($startTime, $endTime) {
                 $query->whereBetween('start_time', [$startTime, $endTime])
                     ->orWhereBetween('end_time', [$startTime, $endTime])
