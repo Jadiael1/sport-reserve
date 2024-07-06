@@ -77,6 +77,6 @@ class Reservation extends Model
 
     public function payments()
     {
-        return $this->hasMany(Payments::class);
+        return $this->hasMany(Payment::class);
     }
 }
