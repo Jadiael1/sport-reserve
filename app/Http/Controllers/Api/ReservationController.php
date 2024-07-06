@@ -28,8 +28,8 @@ class ReservationController extends Controller
      *         name="sort_by",
      *         in="query",
      *         required=false,
-     *         @OA\Schema(type="string"),
-     *         description="Field to sort by, e.g., start_time, end_time, status"
+     *         @OA\Schema(type="string", enum={"created_at", "updated_at", "start_time", "end_time", "status"}),
+     *         description="Field to sort by, e.g., created_at, updated_at, start_time, end_time, status"
      *     ),
      *     @OA\Parameter(
      *         name="sort_order",
