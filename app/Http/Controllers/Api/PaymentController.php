@@ -73,7 +73,7 @@ class PaymentController extends Controller
     public function initiatePayment(Request $request, $id)
     {
         $reservation = Reservation::findOrFail($id);
-        if ($reservation->status === 'paid') {
+        if ($reservation->status === 'PAID') {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Reservation already paid',
