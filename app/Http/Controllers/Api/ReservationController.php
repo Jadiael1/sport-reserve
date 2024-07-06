@@ -35,7 +35,7 @@ class ReservationController extends Controller
     {
         try {
             if (Auth::user()->is_admin) {
-                $reservations = Reservation::with('field')->paginate();
+                $reservations = Reservation::with(['field', 'user'])->paginate();
             } else {
                 $reservations = Reservation::with('field')->where('user_id', Auth::id())->paginate();
             }
@@ -148,7 +148,7 @@ class ReservationController extends Controller
     public function show(string $id)
     {
         try {
-            $reservation = Reservation::with('field')->findOrFail($id);
+            $reservation = Reservation::with(['field', 'user'])->findOrFail($id);
 
             if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
                 return response()->json([
