@@ -24,20 +24,72 @@ class ReservationController extends Controller
      *     summary="Get list of reservations",
      *     description="Returns list of reservations",
      *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string"),
+     *         description="Field to sort by, e.g., start_time, end_time, status"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"asc", "desc"}),
+     *         description="Sort order: asc or desc"
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Reservation"))
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to retrieve reservations",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to retrieve reservations."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
+            $sortBy = $request->query('sort_by', 'start_time'); // Default sort by start_time
+            $sortOrder = $request->query('sort_order', 'asc'); // Default sort order asc
+
+            $validSortFields = ['start_time', 'end_time', 'status', 'created_at', 'updated_at'];
+
+            if (!in_array($sortBy, $validSortFields)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid sort field.',
+                    'data' => null,
+                    'errors' => null
+                ], 400);
+            }
+
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid sort order.',
+                    'data' => null,
+                    'errors' => null
+                ], 400);
+            }
+
             if (Auth::user()->is_admin) {
-                $reservations = Reservation::with(['field', 'user'])->paginate();
+                $reservations = Reservation::with(['field', 'user'])
+                    ->orderBy($sortBy, $sortOrder)
+                    ->paginate();
             } else {
-                $reservations = Reservation::with('field')->where('user_id', Auth::id())->paginate();
+                $reservations = Reservation::with('field')
+                    ->where('user_id', Auth::id())
+                    ->orderBy($sortBy, $sortOrder)
+                    ->paginate();
             }
 
             return response()->json([
