@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Field;
 use App\Models\Reservation;
-use App\Models\Payments;
+use App\Models\Payment;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
@@ -150,7 +150,7 @@ class PaymentController extends Controller
             $responseData = $response->json();
             $payLink = collect($responseData['links'])->firstWhere('rel', 'PAY')['href'] ?? null;
 
-            Payments::create([
+            Payment::create([
                 'reservation_id' => $reservation->id,
                 'amount' => $totalAmount / 100,
                 'status' => 'WAITING',
