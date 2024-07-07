@@ -96,11 +96,11 @@ class ReservationController extends Controller
 
 
             if (Auth::user()->is_admin) {
-                $reservations = Reservation::with(['field', 'user'])
+                $reservations = Reservation::with(['field', 'user', 'payments'])
                     ->orderBy($sortBy, $sortOrder)
                     ->paginate();
             } else {
-                $reservations = Reservation::with('field')
+                $reservations = Reservation::with(['field', 'payments'])
                     ->where('user_id', Auth::id())
                     ->orderBy($sortBy, $sortOrder)
                     ->paginate();
