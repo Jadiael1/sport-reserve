@@ -69,6 +69,7 @@ class UpdateReservationRequest extends FormRequest
     protected function isOverlapping($startTime, $endTime, $fieldId, $reservationId = null)
     {
         return Reservation::where('field_id', $fieldId)
+            ->where('status', '!=', 'CANCELED')
             ->where(function ($query) use ($startTime, $endTime) {
                 $query->whereBetween('start_time', [$startTime, $endTime])
                     ->orWhereBetween('end_time', [$startTime, $endTime])
