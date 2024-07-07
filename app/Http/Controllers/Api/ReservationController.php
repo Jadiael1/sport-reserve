@@ -363,29 +363,4 @@ class ReservationController extends Controller
             ], 500);
         }
     }
-
-    /**
-     * Cleanup pending reservations older than 30 minutes.
-     */
-    protected function cleanupPendingReservations($fieldId, $startTime, $endTime)
-    {
-        $thresholdTime = Carbon::now()->subMinutes(30);
-
-        $pendingReservations = Reservation::where('field_id', $fieldId)
-            ->where('status', 'WAITING')
-            ->where(function ($query) use ($startTime, $endTime) {
-                $query->whereBetween('start_time', [$startTime, $endTime])
-                    ->orWhereBetween('end_time', [$startTime, $endTime])
-                    ->orWhere(function ($query) use ($startTime, $endTime) {
-                        $query->where('start_time', '<', $startTime)
-                            ->where('end_time', '>', $endTime);
-                    });
-            })
-            ->where('created_at', '<', $thresholdTime)
-            ->get();
-
-        foreach ($pendingReservations as $reservation) {
-            $reservation->delete();
-        }
-    }
 }
