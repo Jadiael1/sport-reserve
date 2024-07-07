@@ -82,12 +82,18 @@ class ReservationController extends Controller
             }
 
             $now = Carbon::now('America/Recife');
-            Reservation::where('start_time', '<', $now)
+            $reservations = Reservation::where('start_time', '<', $now)
                 ->where('status', 'WAITING')
                 ->whereDoesntHave('payments', function ($query) {
                     $query->where('status', 'PAID');
                 })
-                ->update(['status' => 'CANCELED']);
+                ->get();
+            foreach ($reservations as $reservation) {
+                $reservation->status = 'CANCELED';
+                $reservation->save();
+                $reservation->payments()->where('status', 'WAITING')->update(['status' => 'CANCELED']);
+            }
+
 
             if (Auth::user()->is_admin) {
                 $reservations = Reservation::with(['field', 'user'])
