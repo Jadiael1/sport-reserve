@@ -84,7 +84,7 @@ class StoreReservationRequest extends FormRequest
      */
     protected function cleanupPendingReservations($fieldId, $startTime, $endTime)
     {
-        $thresholdTime = Carbon::now()->subMinutes(30);
+        $thresholdTime = Carbon::now('America/Recife')->subMinutes(30);
 
         $pendingReservations = Reservation::where('field_id', $fieldId)
             ->where('status', 'WAITING')
