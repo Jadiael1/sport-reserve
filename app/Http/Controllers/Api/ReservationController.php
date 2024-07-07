@@ -157,9 +157,6 @@ class ReservationController extends Controller
         $validatedData = $request->validated();
 
         try {
-            // Excluir reservas pendentes que passaram 30 minutos
-            $this->cleanupPendingReservations($validatedData['field_id'], $validatedData['start_time'], $validatedData['end_time']);
-
             $reservation = Reservation::create([
                 'user_id' => Auth::id(),
                 'field_id' => $validatedData['field_id'],
