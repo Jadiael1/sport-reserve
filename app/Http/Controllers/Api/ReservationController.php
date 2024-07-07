@@ -81,7 +81,7 @@ class ReservationController extends Controller
                 ], 400);
             }
 
-            $now = Carbon::now();
+            $now = Carbon::now('America/Recife');
             Reservation::where('start_time', '<', $now)
                 ->where('status', 'WAITING')
                 ->whereDoesntHave('payments', function ($query) {
