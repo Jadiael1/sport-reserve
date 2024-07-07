@@ -81,6 +81,14 @@ class ReservationController extends Controller
                 ], 400);
             }
 
+            $now = Carbon::now();
+            Reservation::where('start_time', '<', $now)
+                ->where('status', 'WAITING')
+                ->whereDoesntHave('payments', function ($query) {
+                    $query->where('status', 'PAID');
+                })
+                ->update(['status' => 'CANCELED']);
+
             if (Auth::user()->is_admin) {
                 $reservations = Reservation::with(['field', 'user'])
                     ->orderBy($sortBy, $sortOrder)
