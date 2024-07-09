@@ -39,7 +39,7 @@ jobs:
 
     - name: Clear cache and settings
       run: |
-        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /usr/local/bin/php artisan config:cache && /usr/local/bin/php artisan route:cache && /usr/local/bin/php artisan view:cache && /usr/local/bin/php artisan optimize:clear"
+        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /usr/local/bin/php artisan config:cache; /usr/local/bin/php artisan route:cache; /usr/local/bin/php artisan view:cache; /usr/local/bin/php artisan optimize:clear"
 
     - name: Generate swagger documentation
       run: |
