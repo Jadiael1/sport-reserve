@@ -21,11 +21,26 @@ jobs:
       with:
         ssh-private-key: ${{ secrets.VPS_DEPLOY_KEY }}
 
-    # - name: Test SSH connection
-      # run: ssh -v -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} 'echo "SSH connection successful"'
+    - name: Add VPS host to known_hosts
+      run: |
+        ssh-keyscan -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts
 
-    # - name: Sync files to VPS
-      # run: rsync -avz --delete-after --verbose -e "ssh -p ${{ secrets.VPS_PORT }} -o StrictHostKeyChecking=no" --exclude='.git' --exclude='node_modules' --exclude='vendor' --exclude='.env' ./ ${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_DIR }}
+    - name: Pull changes from remote repository
+      run: |
+        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /usr/bin/git pull origin main"
 
-    - name: Run deployment script on VPS
-      run: ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} 'bash -s' < deploy.sh
+    - name: Install composer dependencies
+      run: |
+        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /opt/composer/composer install --no-dev --optimize-autoloader"
+
+    - name: Run migrations
+      run: |
+        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /usr/local/bin/php artisan migrate --force"
+
+    - name: Clear cache and settings
+      run: |
+        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /usr/local/bin/php artisan config:cache && /usr/local/bin/php artisan route:cache && /usr/local/bin/php artisan view:cache && /usr/local/bin/php artisan optimize:clear"
+
+    - name: Generate swagger documentation
+      run: |
+        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /usr/local/bin/php artisan l5-swagger:generate"
