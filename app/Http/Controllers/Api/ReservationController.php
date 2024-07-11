@@ -213,6 +213,12 @@ class ReservationController extends Controller
         try {
             $reservation = Reservation::with(['field', 'user'])->findOrFail($id);
 
+            $startTime = Carbon::parse($reservation->start_time)->setTimezone('America/Recife');
+            if ($startTime->isPast()) {
+                $reservation->status = 'CANCELED';
+                $reservation->save();
+            }
+
             if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
                 return response()->json([
                     'status' => 'success',
