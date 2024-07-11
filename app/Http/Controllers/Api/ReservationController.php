@@ -214,9 +214,11 @@ class ReservationController extends Controller
             $reservation = Reservation::with(['field', 'user'])->findOrFail($id);
 
             $startTime = Carbon::parse($reservation->start_time)->setTimezone('America/Recife');
-            if ($startTime->isPast()) {
+            $hasPaidPayments = $reservation->payments()->where('status', 'PAID')->exists();
+            if ($startTime->isPast() && $reservation->status === 'WAITING' && !$hasPaidPayments) {
                 $reservation->status = 'CANCELED';
                 $reservation->save();
+                $reservation->payments()->where('status', 'WAITING')->update(['status' => 'CANCELED']);
             }
 
             if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
