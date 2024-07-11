@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Reservation;
+use Carbon\Carbon;
 
 /**
  * @OA\Schema(
@@ -55,7 +56,7 @@ class UpdateReservationRequest extends FormRequest
                 'required',
                 function ($attribute, $value, $fail) {
                     if (!$this->isValidDateFormat($value)) {
-                        $fail('The start time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z or Y-m-d\TH:i:s or Y-m-d\TH:i.');
+                        $fail('The end time must be in the format Y-m-d H:i:s or Y-m-d\TH:i:s.v\Z or Y-m-d\TH:i:s or Y-m-d\TH:i.');
                     }
                 },
                 'after:start_time',
@@ -68,6 +69,8 @@ class UpdateReservationRequest extends FormRequest
      */
     protected function isOverlapping($startTime, $endTime, $fieldId, $reservationId = null)
     {
+        $this->cleanupPendingReservations($fieldId, $startTime, $endTime);
+
         return Reservation::where('field_id', $fieldId)
             ->where('status', '!=', 'CANCELED')
             ->where(function ($query) use ($startTime, $endTime) {
@@ -82,6 +85,31 @@ class UpdateReservationRequest extends FormRequest
                 $query->where('id', '!=', $reservationId);
             })
             ->exists();
+    }
+
+    /**
+     * Cleanup pending reservations older than 30 minutes.
+     */
+    protected function cleanupPendingReservations($fieldId, $startTime, $endTime)
+    {
+        $thresholdTime = Carbon::now('America/Recife')->subMinutes(30);
+
+        $pendingReservations = Reservation::where('field_id', $fieldId)
+            ->where('status', 'WAITING')
+            ->where(function ($query) use ($startTime, $endTime) {
+                $query->whereBetween('start_time', [$startTime, $endTime])
+                    ->orWhereBetween('end_time', [$startTime, $endTime])
+                    ->orWhere(function ($query) use ($startTime, $endTime) {
+                        $query->where('start_time', '<', $startTime)
+                            ->where('end_time', '>', $endTime);
+                    });
+            })
+            ->where('created_at', '<', $thresholdTime)
+            ->get();
+
+        foreach ($pendingReservations as $reservation) {
+            $reservation->update(['status' => 'CANCELED']);
+        }
     }
 
     /**
