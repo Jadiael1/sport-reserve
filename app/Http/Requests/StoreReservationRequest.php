@@ -100,7 +100,7 @@ class StoreReservationRequest extends FormRequest
             ->get();
 
         foreach ($pendingReservations as $reservation) {
-            $reservation->delete();
+            $reservation->update(['status' => 'CANCELED']);
         }
     }
 
