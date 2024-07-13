@@ -31,7 +31,7 @@ jobs:
 
     - name: Copy files to VPS
       run: |
-        rsync -avz --delete -e "ssh -p ${{ secrets.VPS_PORT }}" ./ ${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_DIR }}/
+        rsync -avz --delete --exclude '.env' -e "ssh -p ${{ secrets.VPS_PORT }}" ./ ${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_DIR }}/
 
     - name: Install composer dependencies
       run: |
