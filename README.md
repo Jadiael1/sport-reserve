@@ -2,6 +2,9 @@
 
 Sport Reserve é um sistema de marcação de reserva de quadras esportivas, permitindo que usuários registrem e reservem quadras de futebol. O sistema é construído com Laravel e oferece uma API RESTful com autenticação utilizando Laravel Sanctum e documentação da API com Swagger.
 
+# Sistema Online
+- [https://api-sport-reserve.juvhost.com](https://api-sport-reserve.juvhost.com)
+
 ## Funcionalidades
 
 - Registro de usuários
@@ -108,6 +111,10 @@ Options -Indexes
 RewriteEngine On
 RewriteRule ^(.*)$ public/$1 [L]
 ```
+
+## Contato
+
+Para mais informações, entre em contato através do email: jadiael@hotmail.com.br.
 
 ## Licença
 Este projeto está licenciado sob a MIT License.
