@@ -25,13 +25,13 @@ jobs:
       run: |
         ssh-keyscan -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts
 
-    - name: Clean VPS directory Except the .env file
+    - name: Clean VPS directory Except the .env file and storage dir
       run: |
-        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "rm -rf ${{ secrets.VPS_APP_DIR }}/node_modules; rm -rf ${{ secrets.VPS_APP_DIR }}/vendor; find ${{ secrets.VPS_APP_DIR }} -mindepth 1 -not -name '.env' -exec rm -rf {} +"
+        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "rm -rf ${{ secrets.VPS_APP_DIR }}/node_modules; rm -rf ${{ secrets.VPS_APP_DIR }}/vendor; find ${{ secrets.VPS_APP_DIR }} -mindepth 1 -not -name '.env' -not -name 'storage' -exec rm -rf {} +"
 
     - name: Copy files to VPS
       run: |
-        rsync -avz --delete --exclude '.env' -e "ssh -p ${{ secrets.VPS_PORT }}" ./ ${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_DIR }}/
+        rsync -avz --delete --exclude '.env' --exclude 'storage' -e "ssh -p ${{ secrets.VPS_PORT }}" ./ ${{ secrets.VPS_HOST }}:${{ secrets.VPS_APP_DIR }}/
 
     - name: Install composer dependencies
       run: |
@@ -48,3 +48,7 @@ jobs:
     - name: Generate swagger documentation
       run: |
         ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /usr/local/bin/php artisan l5-swagger:generate"
+
+    - name: Create Link Simbolic Storage
+      run: |
+        ssh -o StrictHostKeyChecking=no -p ${{ secrets.VPS_PORT }} ${{ secrets.VPS_HOST }} "cd ${{ secrets.VPS_APP_DIR }} && /usr/local/bin/php artisan storage:link"
