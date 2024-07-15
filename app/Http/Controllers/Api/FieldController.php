@@ -70,12 +70,61 @@ class FieldController extends Controller
      *     security={{"bearerAuth": {}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/StoreFieldRequest")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 required={"name", "location", "type", "hourly_rate"},
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="string",
+     *                     description="The name of the field"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="location",
+     *                     type="string",
+     *                     description="The location of the field"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="type",
+     *                     type="string",
+     *                     description="The type of the field"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="hourly_rate",
+     *                     type="number",
+     *                     format="float",
+     *                     description="The hourly rate for renting the field"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="images",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         format="binary",
+     *                         description="An image file"
+     *                     ),
+     *                     description="Array of image files"
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Successful operation",
      *         @OA\JsonContent(ref="#/components/schemas/Field")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad Request"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal Server Error"
      *     )
      * )
      */
@@ -84,12 +133,23 @@ class FieldController extends Controller
         $validatedData = $request->validated();
 
         try {
-            $field = Field::create([
+            $field = new Field([
                 'name' => $validatedData['name'],
                 'location' => $validatedData['location'],
                 'type' => $validatedData['type'],
                 'hourly_rate' => $validatedData['hourly_rate'],
             ]);
+
+            if ($request->hasFile('images')) {
+                $images = [];
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('fields', 'public');
+                    $images[] = $path;
+                }
+                $field->images = json_encode($images);
+            }
+
+            $field->save();
 
             return response()->json([
                 'status' => 'success',
@@ -182,12 +242,64 @@ class FieldController extends Controller
      *     ),
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/UpdateFieldRequest")
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="name",
+     *                     type="string",
+     *                     description="The name of the field"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="location",
+     *                     type="string",
+     *                     description="The location of the field"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="type",
+     *                     type="string",
+     *                     description="The type of the field"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="hourly_rate",
+     *                     type="number",
+     *                     format="float",
+     *                     description="The hourly rate for renting the field"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="images",
+     *                     type="array",
+     *                     @OA\Items(
+     *                         type="string",
+     *                         format="binary",
+     *                         description="An image file"
+     *                     ),
+     *                     description="Array of image files"
+     *                 )
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(ref="#/components/schemas/Field")
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad Request"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Not Found"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal Server Error"
      *     )
      * )
      */
@@ -199,6 +311,15 @@ class FieldController extends Controller
         try {
             $field = Field::findOrFail($id);
             $field->update($validatedData);
+
+            if ($request->hasFile('images')) {
+                $images = [];
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('fields', 'public');
+                    $images[] = $path;
+                }
+                $field->images = json_encode($images);
+            }
 
             return response()->json([
                 'status' => 'success',
