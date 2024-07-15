@@ -55,6 +55,8 @@ class StoreFieldRequest extends FormRequest
             'location' => 'required|string|max:255',
             'type' => 'required|string|max:50',
             'hourly_rate' => 'required|numeric|between:0,99999.99',
+            'images' => 'nullable|array|max:5',
+            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
     }
 
@@ -76,6 +78,11 @@ class StoreFieldRequest extends FormRequest
             'hourly_rate.required' => 'The hourly rate is required.',
             'hourly_rate.numeric' => 'The hourly rate must be a number.',
             'hourly_rate.between' => 'The hourly rate must be between 0 and 99999.99.',
+            'images.array' => 'The images must be an array.',
+            'images.max' => 'You may not upload more than 5 images.',
+            'images.*.image' => 'Each file must be an image.',
+            'images.*.mimes' => 'Each image must be a file of type: jpg, jpeg, png.',
+            'images.*.max' => 'Each image may not be greater than 2048 kilobytes.',
         ];
     }
 }
