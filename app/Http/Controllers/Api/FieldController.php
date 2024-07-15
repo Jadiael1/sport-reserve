@@ -97,7 +97,7 @@ class FieldController extends Controller
      *                     description="The hourly rate for renting the field"
      *                 ),
      *                 @OA\Property(
-     *                     property="images",
+     *                     property="images[]",
      *                     type="array",
      *                     @OA\Items(
      *                         type="string",
