@@ -39,7 +39,7 @@ class UpdateFieldRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -50,12 +50,14 @@ class UpdateFieldRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|required|string|max:100',
-            'location' => 'sometimes|required|string|max:255',
-            'type' => 'sometimes|required|string|max:50',
-            'hourly_rate' => 'sometimes|required|numeric|between:0,99999.99',
+            'name' => 'sometimes|string|max:100',
+            'location' => 'sometimes|string|max:255',
+            'type' => 'sometimes|string|max:50',
+            'hourly_rate' => 'sometimes|numeric|between:0,99999.99',
             'images' => 'nullable|array|max:5',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'image_ids' => 'nullable|array',
+            'image_ids.*' => 'nullable|integer|exists:field_images,id',
         ];
     }
 
@@ -65,16 +67,12 @@ class UpdateFieldRequest extends FormRequest
     public function messages()
     {
         return [
-            'name.required' => 'The field name is required.',
             'name.string' => 'The field name must be a string.',
             'name.max' => 'The field name may not be greater than 100 characters.',
-            'location.required' => 'The field location is required.',
             'location.string' => 'The field location must be a string.',
             'location.max' => 'The field location may not be greater than 255 characters.',
-            'type.required' => 'The field type is required.',
             'type.string' => 'The field type must be a string.',
             'type.max' => 'The field type may not be greater than 50 characters.',
-            'hourly_rate.required' => 'The hourly rate is required.',
             'hourly_rate.numeric' => 'The hourly rate must be a number.',
             'hourly_rate.between' => 'The hourly rate must be between 0 and 99999.99.',
             'images.array' => 'The images must be an array.',
@@ -82,6 +80,26 @@ class UpdateFieldRequest extends FormRequest
             'images.*.image' => 'Each file must be an image.',
             'images.*.mimes' => 'Each image must be a file of type: jpg, jpeg, png.',
             'images.*.max' => 'Each image may not be greater than 2048 kilobytes.',
+            'image_ids.array' => 'The image IDs must be an array.',
+            'image_ids.*.integer' => 'Each image ID must be an integer.',
+            'image_ids.*.exists' => 'Each image ID must exist in the field_images table.',
         ];
+    }
+
+    protected function prepareForValidation()
+    {
+        $input = $this->all();
+
+        // Remove null values and null array values
+        $cleanedInput = array_filter($input, function ($value) {
+            if (is_array($value)) {
+                return array_filter($value, function ($item) {
+                    return !is_null($item);
+                });
+            }
+            return !is_null($value);
+        });
+
+        $this->replace($cleanedInput);
     }
 }
