@@ -143,8 +143,17 @@ class FieldController extends Controller
             if ($request->hasFile('images')) {
                 $images = [];
                 foreach ($request->file('images') as $image) {
-                    $path = $image->store('fields', 'public');
-                    $images[] = $path;
+                    if ($image->isValid()) {
+                        $path = $image->store('fields', 'public');
+                        $images[] = $path;
+                    } else {
+                        return response()->json([
+                            'status' => 'error',
+                            'message' => 'One or more images failed to upload.',
+                            'data' => null,
+                            'errors' => ['images' => ['One or more images failed to upload.']]
+                        ], 422);
+                    }
                 }
                 $field->images = json_encode($images);
             }
