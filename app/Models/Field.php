@@ -37,6 +37,12 @@ use Illuminate\Database\Eloquent\Model;
  *         type="number",
  *         format="float",
  *         description="Hourly rate for renting the field"
+ *     ),
+ *     @OA\Property(
+ *         property="images",
+ *         type="array",
+ *         @OA\Items(type="string"),
+ *         description="Field images"
  *     )
  * )
  */
@@ -51,5 +57,10 @@ class Field extends Model
         'location',
         'type',
         'hourly_rate',
+        'images',
+    ];
+
+    protected $casts = [
+        'images' => 'array',
     ];
 }
