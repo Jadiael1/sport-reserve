@@ -56,11 +56,11 @@ class Field extends Model
         'name',
         'location',
         'type',
-        'hourly_rate',
-        'images',
+        'hourly_rate'
     ];
 
-    protected $casts = [
-        'images' => 'array',
-    ];
+    public function images()
+    {
+        return $this->hasMany(FieldImage::class);
+    }
 }
