@@ -8,7 +8,7 @@ use App\Http\Requests\UpdateFieldRequest;
 use App\Models\Field;
 use Exception;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Storage;
 
 class FieldController extends Controller
 {
@@ -32,7 +32,7 @@ class FieldController extends Controller
     public function index()
     {
         try {
-            $field = Field::paginate();
+            $field = Field::with(['images'])->paginate();
             return response()->json([
                 'status' => 'success',
                 'message' => 'Field successfully recovered.',
@@ -139,31 +139,19 @@ class FieldController extends Controller
                 'type' => $validatedData['type'],
                 'hourly_rate' => $validatedData['hourly_rate'],
             ]);
+            $field->save();
 
             if ($request->hasFile('images')) {
-                $images = [];
                 foreach ($request->file('images') as $image) {
-                    if ($image->isValid()) {
-                        $path = $image->store('fields', 'public');
-                        $images[] = $path;
-                    } else {
-                        return response()->json([
-                            'status' => 'error',
-                            'message' => 'One or more images failed to upload.',
-                            'data' => null,
-                            'errors' => ['images' => ['One or more images failed to upload.']]
-                        ], 422);
-                    }
+                    $path = $image->store('fields', 'public');
+                    $field->images()->create(['path' => $path]);
                 }
-                $field->images = json_encode($images);
             }
-
-            $field->save();
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Field created successfully.',
-                'data' => $field,
+                'data' => $field->load('images'),
                 'errors' => null
             ], 201);
         } catch (Exception $e) {
@@ -206,7 +194,7 @@ class FieldController extends Controller
     public function show(string $id)
     {
         try {
-            $field = Field::findOrFail($id);
+            $field = Field::with(['images'])->findOrFail($id);
 
             return response()->json([
                 'status' => 'success',
@@ -236,7 +224,7 @@ class FieldController extends Controller
      * Update the specified resource in storage.
      */
     /**
-     * @OA\Patch(
+     * @OA\Post(
      *     path="/api/v1/fields/{id}",
      *     operationId="updateField",
      *     tags={"Fields"},
@@ -255,36 +243,65 @@ class FieldController extends Controller
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                 type="object",
+     *                 required={"_method"},
+     *                 @OA\Property(
+     *                     property="_method",
+     *                     type="string",
+     *                     enum={"PATCH"},
+     *                     default="PATCH",
+     *                     description="This field is required and must be set to PATCH"
+     *                 ),
      *                 @OA\Property(
      *                     property="name",
      *                     type="string",
+     *                     default="",
+     *                     nullable=true,
      *                     description="The name of the field"
      *                 ),
      *                 @OA\Property(
      *                     property="location",
      *                     type="string",
+     *                     default="",
+     *                     nullable=true,
      *                     description="The location of the field"
      *                 ),
      *                 @OA\Property(
      *                     property="type",
      *                     type="string",
+     *                     default="",
+     *                     nullable=true,
      *                     description="The type of the field"
      *                 ),
      *                 @OA\Property(
      *                     property="hourly_rate",
      *                     type="number",
      *                     format="float",
+     *                     default="",
+     *                     nullable=true,
      *                     description="The hourly rate for renting the field"
      *                 ),
      *                 @OA\Property(
-     *                     property="images",
+     *                     property="images[]",
      *                     type="array",
+     *                     nullable=true,
      *                     @OA\Items(
      *                         type="string",
      *                         format="binary",
      *                         description="An image file"
      *                     ),
+     *                     default={},
      *                     description="Array of image files"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="image_ids[]",
+     *                     type="array",
+     *                     nullable=true,
+     *                     @OA\Items(
+     *                         type="integer",
+     *                         description="ID of the image to be replaced"
+     *                     ),
+     *                     default={},
+     *                     description="Array of image IDs to be replaced"
      *                 )
      *             )
      *         )
@@ -321,19 +338,26 @@ class FieldController extends Controller
             $field = Field::findOrFail($id);
             $field->update($validatedData);
 
-            if ($request->hasFile('images')) {
-                $images = [];
-                foreach ($request->file('images') as $image) {
-                    $path = $image->store('fields', 'public');
-                    $images[] = $path;
+            if ($request->has('image_ids') && $request->hasFile('images')) {
+                $imageIds = $request->input('image_ids');
+                $images = $request->file('images');
+
+                foreach ($images as $index => $image) {
+                    if (isset($imageIds[$index])) {
+                        $imageRecord = $field->images()->find($imageIds[$index]);
+                        if ($imageRecord) {
+                            Storage::disk('public')->delete($imageRecord->path);
+                            $path = $image->store('fields', 'public');
+                            $imageRecord->update(['path' => $path]);
+                        }
+                    }
                 }
-                $field->images = json_encode($images);
             }
 
             return response()->json([
                 'status' => 'success',
                 'message' => 'Field updated successfully.',
-                'data' => $field,
+                'data' => $field->load('images'),
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
