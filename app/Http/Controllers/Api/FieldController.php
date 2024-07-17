@@ -206,6 +206,12 @@ class FieldController extends Controller
         try {
             $field = Field::with(['images'])->findOrFail($id);
 
+            // Transforma os campos para incluir o path de imagem completos
+            $field->images->transform(function ($image) {
+                $image->path = Storage::url($image->path);
+                return $image;
+            });
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Field successfully recovered.',
