@@ -35,7 +35,7 @@ class FieldController extends Controller
             $fields = Field::with(['images'])->paginate();
 
             // Transforma os campos para incluir o path de imagem completos
-            $fields = $fields->getCollection()->transform(function ($field) {
+            $fields->getCollection()->transform(function ($field) {
                 $field->images->transform(function ($image) {
                     $image->path = Storage::url($image->path);
                     return $image;
