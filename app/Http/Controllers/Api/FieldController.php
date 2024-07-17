@@ -297,7 +297,7 @@ class FieldController extends Controller
      *                     description="The hourly rate for renting the field"
      *                 ),
      *                 @OA\Property(
-     *                     property="images[]",
+     *                     property="images",
      *                     type="array",
      *                     nullable=true,
      *                     @OA\Items(
@@ -309,7 +309,7 @@ class FieldController extends Controller
      *                     description="Array of image files"
      *                 ),
      *                 @OA\Property(
-     *                     property="image_ids[]",
+     *                     property="image_ids",
      *                     type="array",
      *                     nullable=true,
      *                     @OA\Items(
@@ -347,25 +347,27 @@ class FieldController extends Controller
      */
     public function update(UpdateFieldRequest $request, string $id)
     {
-        // A validação já foi feita pela classe UpdateReservationRequest
         $validatedData = $request->validated();
 
         try {
             $field = Field::findOrFail($id);
             $field->update($validatedData);
 
-            if ($request->has('image_ids') && $request->hasFile('images')) {
-                $imageIds = $request->input('image_ids');
-                $images = $request->file('images');
+            $imageIds = $request->input('image_ids', []);
+            $images = $request->file('images', []);
 
-                foreach ($images as $index => $image) {
-                    if (isset($imageIds[$index])) {
-                        $imageRecord = $field->images()->find($imageIds[$index]);
-                        if ($imageRecord) {
-                            Storage::disk('public')->delete($imageRecord->path);
-                            $path = $image->store('fields', 'public');
-                            $imageRecord->update(['path' => $path]);
-                        }
+            foreach ($imageIds as $index => $imageId) {
+                $imageRecord = $field->images()->find($imageId);
+                if ($imageRecord) {
+                    if (isset($images[$index])) {
+                        // Substitui a imagem existente por uma nova
+                        Storage::disk('public')->delete($imageRecord->path);
+                        $path = $images[$index]->store('fields', 'public');
+                        $imageRecord->update(['path' => $path]);
+                    } else {
+                        // Exclui a imagem se não houver nova imagem correspondente
+                        Storage::disk('public')->delete($imageRecord->path);
+                        $imageRecord->delete();
                     }
                 }
             }
