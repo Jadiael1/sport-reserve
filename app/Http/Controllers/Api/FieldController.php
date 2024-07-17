@@ -7,7 +7,6 @@ use App\Http\Requests\StoreFieldRequest;
 use App\Http\Requests\UpdateFieldRequest;
 use App\Models\Field;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class FieldController extends Controller
@@ -32,11 +31,22 @@ class FieldController extends Controller
     public function index()
     {
         try {
-            $field = Field::with(['images'])->paginate();
+            /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
+            $fields = Field::with(['images'])->paginate();
+
+            // Transforma os campos para incluir o path de imagem completos
+            $fields = $fields->getCollection()->transform(function ($field) {
+                $field->images->transform(function ($image) {
+                    $image->path = Storage::url($image->path);
+                    return $image;
+                });
+                return $field;
+            });
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Field successfully recovered.',
-                'data' => $field,
+                'data' => $fields,
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
