@@ -370,10 +370,17 @@ class FieldController extends Controller
                 }
             }
 
+            // Carregar imagens e adicionar URLs completas
+            $field->load('images');
+            $field->images->transform(function ($image) {
+                $image->path = Storage::url($image->path);
+                return $image;
+            });
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Field updated successfully.',
-                'data' => $field->load('images'),
+                'data' => $field,
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
