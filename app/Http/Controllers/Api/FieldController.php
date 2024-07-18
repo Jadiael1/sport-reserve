@@ -245,7 +245,7 @@ class FieldController extends Controller
      *     operationId="updateField",
      *     tags={"Fields"},
      *     summary="Update an existing field",
-     *     description="Updates an existing field and returns the updated data",
+     *     description="Atualiza um campo existente de forma parcial. Pode-se atualizar as informações do campo e as imagens associadas. Para atualizar uma imagem específica, forneça `image_ids[]` com o ID da imagem e `images[]` com a nova imagem correspondente. Para deletar uma imagem, forneça `image_ids[]` com o ID da imagem sem fornecer `images[]`.",
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
@@ -297,7 +297,7 @@ class FieldController extends Controller
      *                     description="The hourly rate for renting the field"
      *                 ),
      *                 @OA\Property(
-     *                     property="images",
+     *                     property="images[]",
      *                     type="array",
      *                     nullable=true,
      *                     @OA\Items(
@@ -309,7 +309,7 @@ class FieldController extends Controller
      *                     description="Array of image files"
      *                 ),
      *                 @OA\Property(
-     *                     property="image_ids",
+     *                     property="image_ids[]",
      *                     type="array",
      *                     nullable=true,
      *                     @OA\Items(
