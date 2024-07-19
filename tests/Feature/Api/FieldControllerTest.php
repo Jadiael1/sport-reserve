@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Field;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class FieldControllerTest extends TestCase
@@ -52,7 +53,8 @@ class FieldControllerTest extends TestCase
                 'name' => 'Test Field',
                 'location' => 'Test Location',
                 'type' => 'Football',
-                'hourly_rate' => 50
+                'hourly_rate' => 50,
+                'images' => [UploadedFile::fake()->image('field.jpg')]
             ]);
 
         // checks whether field creation was successful
