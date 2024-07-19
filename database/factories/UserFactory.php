@@ -6,6 +6,10 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
+use Faker\Factory as FakerFactory;
+use Faker\Provider\pt_BR\Person;
+use Faker\Provider\pt_BR\PhoneNumber;
+
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
  */
@@ -23,12 +27,18 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $faker = FakerFactory::create();
+        $faker->addProvider(new Person($faker));
+        $faker->addProvider(new PhoneNumber($faker));
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'cpf' => $faker->cpf(false),
+            'phone' => $faker->cellphoneNumber,
+            'is_admin' => false,
         ];
     }
 
