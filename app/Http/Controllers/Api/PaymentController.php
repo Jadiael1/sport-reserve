@@ -133,11 +133,17 @@ class PaymentController extends Controller
                     )
                 )
             ),
-            'redirect_url' => env('SAP_URL'),
-            'return_url' => env('SAP_URL'),
+            // 'redirect_url' => env('SAP_URL'),
+            // 'return_url' => env('SAP_URL'),
             'soft_descriptor' => 'sport-reserve',
-            'payment_notification_urls' => array(env('APP_URL') . "/api/v1/payments/notify")
+            // 'payment_notification_urls' => array(env('APP_URL') . "/api/v1/payments/notify")
         );
+        $appUrl = env('APP_URL');
+        if ($appUrl && strpos($appUrl, 'localhost') === false) {
+            $body['redirect_url'] = env('SAP_URL');
+            $body['return_url'] = env('SAP_URL');
+            $body['payment_notification_urls'] = array($appUrl . "/api/v1/payments/notify");
+        }
         $url = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.baseUrlSandBox') . "/checkouts" : config('pagseguro.baseUrl') . "/checkouts";
         $token = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.tokenSandBox') : config('pagseguro.token');
         $response = Http::withHeaders([
