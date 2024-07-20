@@ -245,7 +245,7 @@ class FieldController extends Controller
      *     operationId="updateField",
      *     tags={"Fields"},
      *     summary="Update an existing field",
-     *     description="Atualiza um campo existente de forma parcial. Pode-se atualizar as informações do campo e as imagens associadas. Para atualizar uma imagem específica, forneça `image_ids[]` com o ID da imagem e `images[]` com a nova imagem correspondente. Para deletar uma imagem, forneça `image_ids[]` com o ID da imagem sem fornecer `images[]`.",
+     *     description="Atualiza um campo existente de forma parcial. Pode-se atualizar as informações do campo e as imagens associadas. Para atualizar uma imagem específica, forneça `image_ids[]` com o ID da imagem e `images[]` com a nova imagem correspondente. Para deletar uma imagem, forneça `image_ids[]` com o ID da imagem sem fornecer `images[]`. Para adicionar novas imagens, forneça apenas `images[]` sem `image_ids[]`.",
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
@@ -356,6 +356,7 @@ class FieldController extends Controller
             $imageIds = $request->input('image_ids', []);
             $images = $request->file('images', []);
 
+            // Atualizar imagens existentes
             foreach ($imageIds as $index => $imageId) {
                 $imageRecord = $field->images()->find($imageId);
                 if ($imageRecord) {
@@ -369,6 +370,14 @@ class FieldController extends Controller
                         Storage::disk('public')->delete($imageRecord->path);
                         $imageRecord->delete();
                     }
+                }
+            }
+
+            // Adicionar novas imagens
+            if (empty($imageIds) && !empty($images)) {
+                foreach ($images as $image) {
+                    $path = $image->store('fields', 'public');
+                    $field->images()->create(['path' => $path]);
                 }
             }
 
