@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReservationRequest;
 use App\Http\Requests\UpdateReservationRequest;
+use App\Models\Field;
 use App\Models\Reservation;
 use Exception;
 use Illuminate\Http\Request;
@@ -42,6 +43,16 @@ class ReservationController extends Controller
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Reservation"))
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid sort field or sort order",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Invalid sort field or sort order."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=500,
@@ -149,6 +160,26 @@ class ReservationController extends Controller
      *         response=201,
      *         description="Successful operation",
      *         @OA\JsonContent(ref="#/components/schemas/Reservation")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden: Cannot create a reservation for an inactive field",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Cannot create a reservation for an inactive field."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal Server Error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to create reservation."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -157,6 +188,16 @@ class ReservationController extends Controller
         $validatedData = $request->validated();
 
         try {
+            $field = Field::findOrFail($validatedData['field_id']);
+
+            if ($field->status === 'inactive') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot create a reservation for an inactive field.',
+                    'data' => null,
+                    'errors' => null
+                ], 403);
+            }
             $reservation = Reservation::create([
                 'user_id' => Auth::id(),
                 'field_id' => $validatedData['field_id'],
@@ -279,6 +320,26 @@ class ReservationController extends Controller
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(ref="#/components/schemas/Reservation")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Forbidden: Cannot update reservation for an inactive field or unauthorized access.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Cannot update reservation for an inactive field."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to update reservation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to update reservation."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -288,6 +349,17 @@ class ReservationController extends Controller
 
         try {
             $reservation = Reservation::findOrFail($id);
+
+            // Verifica se o campo da reserva está inativo
+            $field = Field::findOrFail($reservation->field_id);
+            if ($field->status === 'inactive') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot update reservation for an inactive field.',
+                    'data' => null,
+                    'errors' => null
+                ], 403);
+            }
 
             if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
                 $reservation->update($validatedData);
@@ -336,7 +408,32 @@ class ReservationController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Reservation")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Reservation canceled successfully."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized access",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized access."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to delete reservation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to cancel reservation."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -346,11 +443,12 @@ class ReservationController extends Controller
             $reservation = Reservation::findOrFail($id);
 
             if (Auth::user()->is_admin || $reservation->user_id == Auth::id()) {
-                $reservation->delete();
+                $reservation->status = 'CANCELED';
+                $reservation->save();
 
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Reservation successfully deleted.',
+                    'message' => 'Reservation canceled successfully.',
                     'data' => null,
                     'errors' => null
                 ], 200);
@@ -365,7 +463,7 @@ class ReservationController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to delete reservation.',
+                'message' => 'Failed to cancel reservation.',
                 'data' => null,
                 'errors' => $e->getMessage()
             ], 500);
