@@ -12,23 +12,54 @@ use Illuminate\Foundation\Http\FormRequest;
  *     @OA\Property(
  *         property="name",
  *         type="string",
- *         description="Name of the field"
+ *         description="Name of the field",
+ *         example="Soccer Field"
  *     ),
  *     @OA\Property(
  *         property="location",
  *         type="string",
- *         description="Location of the field"
+ *         description="Location of the field",
+ *         example="Downtown Park"
  *     ),
  *     @OA\Property(
  *         property="type",
  *         type="string",
- *         description="Type of the field"
+ *         description="Type of the field",
+ *         example="Soccer"
  *     ),
  *     @OA\Property(
  *         property="hourly_rate",
  *         type="number",
  *         format="float",
- *         description="Hourly rate for renting the field"
+ *         description="Hourly rate for renting the field",
+ *         example=50.00
+ *     ),
+ *     @OA\Property(
+ *         property="status",
+ *         type="string",
+ *         description="Field status: active or inactive",
+ *         example="active"
+ *     ),
+ *     @OA\Property(
+ *         property="images",
+ *         type="array",
+ *         @OA\Items(
+ *             type="string",
+ *             format="binary",
+ *             description="Image file"
+ *         ),
+ *         description="Array of image files",
+ *         example={"image1.jpg", "image2.png"}
+ *     ),
+ *     @OA\Property(
+ *         property="image_ids",
+ *         type="array",
+ *         @OA\Items(
+ *             type="integer",
+ *             description="ID of the image"
+ *         ),
+ *         description="Array of image IDs",
+ *         example={1, 2, 3}
  *     )
  * )
  */
@@ -54,32 +85,42 @@ class UpdateFieldRequest extends FormRequest
             'location' => 'sometimes|string|max:255',
             'type' => 'sometimes|string|max:50',
             'hourly_rate' => 'sometimes|numeric|between:0,99999.99',
-            'images' => 'nullable|array|max:5',
-            'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'image_ids' => 'nullable|array',
-            'image_ids.*' => 'nullable|integer|exists:field_images,id',
+            'status' => 'sometimes|string|in:active,inactive',
+            'images' => 'sometimes|array|max:5',
+            'images.*' => 'sometimes|image|mimes:jpg,jpeg,png|max:2048',
+            'image_ids' => 'sometimes|array',
+            'image_ids.*' => 'sometimes|integer|exists:field_images,id',
         ];
     }
 
     /**
      * Get the error messages for the defined validation rules.
      */
-    public function messages()
+    public function messages(): array
     {
         return [
-            'name.string' => 'The field name must be a string.',
-            'name.max' => 'The field name may not be greater than 100 characters.',
-            'location.string' => 'The field location must be a string.',
-            'location.max' => 'The field location may not be greater than 255 characters.',
-            'type.string' => 'The field type must be a string.',
-            'type.max' => 'The field type may not be greater than 50 characters.',
+            'name.sometimes' => 'The name field is optional.',
+            'name.string' => 'The name must be a string.',
+            'name.max' => 'The name may not be greater than 100 characters.',
+            'location.sometimes' => 'The location field is optional.',
+            'location.string' => 'The location must be a string.',
+            'location.max' => 'The location may not be greater than 255 characters.',
+            'type.sometimes' => 'The type field is optional.',
+            'type.string' => 'The type must be a string.',
+            'type.max' => 'The type may not be greater than 50 characters.',
+            'hourly_rate.sometimes' => 'The hourly rate field is optional.',
             'hourly_rate.numeric' => 'The hourly rate must be a number.',
             'hourly_rate.between' => 'The hourly rate must be between 0 and 99999.99.',
+            'status.sometimes' => 'The status field is optional.',
+            'status.string' => 'The status must be a string.',
+            'status.in' => 'The status must be either "active" or "inactive".',
+            'images.sometimes' => 'The images field is optional.',
             'images.array' => 'The images must be an array.',
             'images.max' => 'You may not upload more than 5 images.',
             'images.*.image' => 'Each file must be an image.',
             'images.*.mimes' => 'Each image must be a file of type: jpg, jpeg, png.',
             'images.*.max' => 'Each image may not be greater than 2048 kilobytes.',
+            'image_ids.sometimes' => 'The image IDs field is optional.',
             'image_ids.array' => 'The image IDs must be an array.',
             'image_ids.*.integer' => 'Each image ID must be an integer.',
             'image_ids.*.exists' => 'Each image ID must exist in the field_images table.',
