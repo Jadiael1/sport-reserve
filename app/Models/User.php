@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Notifications\CustomVerifyEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;;
+
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -14,7 +15,7 @@ use Laravel\Sanctum\HasApiTokens;
  *     schema="User",
  *     type="object",
  *     title="User",
- *     required={"name", "email", "cpf", "phone"},
+ *     required={"name", "email", "cpf", "phone", "password"},
  *     @OA\Property(
  *         property="id",
  *         type="integer",
@@ -25,6 +26,16 @@ use Laravel\Sanctum\HasApiTokens;
  *         property="name",
  *         type="string",
  *         description="Name of the user"
+ *     ),
+ *     @OA\Property(
+ *         property="cpf",
+ *         type="string",
+ *         description="CPF of the user"
+ *     ),
+ *     @OA\Property(
+ *         property="phone",
+ *         type="string",
+ *         description="Phone number of the user"
  *     ),
  *     @OA\Property(
  *         property="email",
@@ -40,14 +51,26 @@ use Laravel\Sanctum\HasApiTokens;
  *         description="Informs if the account is active or the date the email was verified"
  *     ),
  *     @OA\Property(
- *         property="cpf",
+ *         property="password",
  *         type="string",
- *         description="CPF of the user"
+ *         description="Password of the user"
  *     ),
  *     @OA\Property(
- *         property="phone",
+ *         property="is_admin",
+ *         type="boolean",
+ *         description="Indicates if the user is an admin"
+ *     ),
+ *     @OA\Property(
+ *         property="created_at",
  *         type="string",
- *         description="Phone number of the user"
+ *         format="date-time",
+ *         description="Creation timestamp"
+ *     ),
+ *     @OA\Property(
+ *         property="updated_at",
+ *         type="string",
+ *         format="date-time",
+ *         description="Last update timestamp"
  *     )
  * )
  */

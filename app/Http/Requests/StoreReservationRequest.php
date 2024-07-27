@@ -9,10 +9,29 @@ use Carbon\Carbon;
 /**
  * @OA\Schema(
  *     schema="StoreReservationRequest",
+ *     type="object",
+ *     title="Store Reservation Request",
  *     required={"field_id", "start_time", "end_time"},
- *     @OA\Property(property="field_id", type="integer", example=1),
- *     @OA\Property(property="start_time", type="string", format="date-time", example="2023-06-30T14:00:00Z"),
- *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-30T15:00:00Z")
+ *     @OA\Property(
+ *         property="field_id",
+ *         type="integer",
+ *         description="ID of the field",
+ *         example=1
+ *     ),
+ *     @OA\Property(
+ *         property="start_time",
+ *         type="string",
+ *         format="date-time",
+ *         description="Start time of the reservation",
+ *         example="2023-06-30T14:00:00Z"
+ *     ),
+ *     @OA\Property(
+ *         property="end_time",
+ *         type="string",
+ *         format="date-time",
+ *         description="End time of the reservation",
+ *         example="2023-06-30T15:00:00Z"
+ *     )
  * )
  */
 class StoreReservationRequest extends FormRequest

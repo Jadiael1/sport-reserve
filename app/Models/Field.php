@@ -39,15 +39,21 @@ use Illuminate\Database\Eloquent\Model;
  *         description="Hourly rate for renting the field"
  *     ),
  *     @OA\Property(
- *         property="images",
- *         type="array",
- *         @OA\Items(type="string"),
- *         description="Field images"
- *     ),
- *     @OA\Property(
  *         property="status",
  *         type="string",
  *         description="Field status: active or inactive"
+ *     ),
+ *     @OA\Property(
+ *         property="created_at",
+ *         type="string",
+ *         format="date-time",
+ *         description="Creation timestamp"
+ *     ),
+ *     @OA\Property(
+ *         property="updated_at",
+ *         type="string",
+ *         format="date-time",
+ *         description="Last update timestamp"
  *     )
  * )
  */
@@ -70,7 +76,8 @@ class Field extends Model
         return $this->hasMany(FieldImage::class);
     }
 
-    public function reservations(){
+    public function reservations()
+    {
         return $this->hasMany(Reservation::class);
     }
 }

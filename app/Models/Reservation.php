@@ -43,6 +43,18 @@ use Illuminate\Database\Eloquent\Model;
  *         property="status",
  *         type="string",
  *         description="Status of the reservation"
+ *     ),
+ *     @OA\Property(
+ *         property="created_at",
+ *         type="string",
+ *         format="date-time",
+ *         description="Creation timestamp"
+ *     ),
+ *     @OA\Property(
+ *         property="updated_at",
+ *         type="string",
+ *         format="date-time",
+ *         description="Last update timestamp"
  *     )
  * )
  */
@@ -56,7 +68,8 @@ class Reservation extends Model
         'user_id',
         'field_id',
         'start_time',
-        'end_time'
+        'end_time',
+        'status'
     ];
 
     /**

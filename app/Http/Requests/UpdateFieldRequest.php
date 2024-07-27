@@ -43,23 +43,21 @@ use Illuminate\Foundation\Http\FormRequest;
  *     @OA\Property(
  *         property="images",
  *         type="array",
+ *         description="Array of image files",
  *         @OA\Items(
  *             type="string",
  *             format="binary",
  *             description="Image file"
- *         ),
- *         description="Array of image files",
- *         example={"image1.jpg", "image2.png"}
+ *         )
  *     ),
  *     @OA\Property(
  *         property="image_ids",
  *         type="array",
+ *         description="Array of image IDs",
  *         @OA\Items(
  *             type="integer",
  *             description="ID of the image"
- *         ),
- *         description="Array of image IDs",
- *         example={1, 2, 3}
+ *         )
  *     )
  * )
  */

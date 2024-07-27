@@ -12,35 +12,41 @@ use Illuminate\Foundation\Http\FormRequest;
  *     @OA\Property(
  *         property="name",
  *         type="string",
- *         description="Name of the user"
+ *         description="Name of the user",
+ *         example="John Doe"
  *     ),
  *     @OA\Property(
  *         property="email",
  *         type="string",
  *         format="email",
- *         description="Email of the user"
+ *         description="Email of the user",
+ *         example="john.doe@example.com"
  *     ),
  *     @OA\Property(
  *         property="cpf",
  *         type="string",
- *         description="CPF of the user"
+ *         description="CPF of the user",
+ *         example="12345678901"
  *     ),
  *     @OA\Property(
  *         property="phone",
  *         type="string",
- *         description="Phone number of the user"
+ *         description="Phone number of the user",
+ *         example="(81) 99999-9999"
  *     ),
  *     @OA\Property(
  *         property="password",
  *         type="string",
  *         format="password",
- *         description="Password of the user"
+ *         description="Password of the user",
+ *         example="password123"
  *     ),
  *     @OA\Property(
  *         property="password_confirmation",
  *         type="string",
  *         format="password",
- *         description="Password confirmation"
+ *         description="Password confirmation",
+ *         example="password123"
  *     )
  * )
  */

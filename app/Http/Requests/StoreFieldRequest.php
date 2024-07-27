@@ -13,23 +13,37 @@ use Illuminate\Foundation\Http\FormRequest;
  *     @OA\Property(
  *         property="name",
  *         type="string",
- *         description="Name of the field"
+ *         description="Name of the field",
+ *         example="Soccer Field"
  *     ),
  *     @OA\Property(
  *         property="location",
  *         type="string",
- *         description="Location of the field"
+ *         description="Location of the field",
+ *         example="Downtown Park"
  *     ),
  *     @OA\Property(
  *         property="type",
  *         type="string",
- *         description="Type of the field"
+ *         description="Type of the field",
+ *         example="Soccer"
  *     ),
  *     @OA\Property(
  *         property="hourly_rate",
  *         type="number",
  *         format="float",
- *         description="Hourly rate for renting the field"
+ *         description="Hourly rate for renting the field",
+ *         example=50.00
+ *     ),
+ *     @OA\Property(
+ *         property="images",
+ *         type="array",
+ *         description="Array of images",
+ *         @OA\Items(
+ *             type="string",
+ *             format="binary",
+ *             description="Image file"
+ *         )
  *     )
  * )
  */
