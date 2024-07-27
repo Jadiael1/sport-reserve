@@ -26,6 +26,16 @@ class FieldController extends Controller
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Field"))
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to retrieve fields",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to retrieve fields."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -36,7 +46,7 @@ class FieldController extends Controller
             if (Auth::user() && Auth::user()->is_admin) {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
                 $fields = Field::with(['images'])->paginate();
-            }else{
+            } else {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
                 $fields = Field::with(['images'])->where('status', '!=', 'inactive')->paginate();
             }
@@ -129,20 +139,38 @@ class FieldController extends Controller
      *     ),
      *     @OA\Response(
      *         response=201,
-     *         description="Successful operation",
+     *         description="Field created successfully",
      *         @OA\JsonContent(ref="#/components/schemas/Field")
      *     ),
      *     @OA\Response(
      *         response=400,
-     *         description="Bad Request"
+     *         description="Bad Request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Validation error."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Unauthorized"
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=500,
-     *         description="Internal Server Error"
+     *         description="Internal Server Error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to create field."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -200,12 +228,28 @@ class FieldController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Successful operation",
+     *         description="Field successfully recovered",
      *         @OA\JsonContent(ref="#/components/schemas/Field")
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Field not found"
+     *         description="Field not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Field not found."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal Server Error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to retrieve field."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -253,12 +297,12 @@ class FieldController extends Controller
      * Update the specified resource in storage.
      */
     /**
-     * @OA\Post(
+     * @OA\Patch(
      *     path="/api/v1/fields/{id}",
      *     operationId="updateField",
      *     tags={"Fields"},
      *     summary="Update an existing field",
-     *     description="Atualiza um campo existente de forma parcial. Pode-se atualizar as informações do campo e as imagens associadas. Para atualizar uma imagem específica, forneça `image_ids[]` com o ID da imagem e `images[]` com a nova imagem correspondente. Para deletar uma imagem, forneça `image_ids[]` com o ID da imagem sem fornecer `images[]`. Para adicionar novas imagens, forneça apenas `images[]` sem `image_ids[]`.",
+     *     description="Updates an existing field and returns the updated data",
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
@@ -337,24 +381,48 @@ class FieldController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Successful operation",
+     *         description="Field updated successfully",
      *         @OA\JsonContent(ref="#/components/schemas/Field")
      *     ),
      *     @OA\Response(
      *         response=400,
-     *         description="Bad Request"
+     *         description="Bad Request",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Validation error."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="object")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=401,
-     *         description="Unauthorized"
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=404,
-     *         description="Not Found"
+     *         description="Field not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Field not found."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=500,
-     *         description="Internal Server Error"
+     *         description="Internal Server Error",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to update field."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -436,8 +504,33 @@ class FieldController extends Controller
      *     ),
      *     @OA\Response(
      *         response=200,
-     *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/Field")
+     *         description="Field successfully deleted or inactivated",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Field successfully deleted."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Field not found",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Field not found."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to delete field",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to delete field."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
