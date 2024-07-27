@@ -7,7 +7,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Exception;
-
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -185,6 +185,7 @@ class UserController extends Controller
      *         name="id",
      *         in="path",
      *         required=true,
+     *         description="ID of the user to update",
      *         @OA\Schema(type="string")
      *     ),
      *     @OA\RequestBody(
@@ -194,16 +195,101 @@ class UserController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 example="success"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="User updated successfully."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/User"
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="string",
+     *                 nullable=true
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized operation",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 example="error"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="You are not authorized to update this user."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 nullable=true
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="string",
+     *                 example="Unauthorized"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to update user",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 example="error"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Failed to update user."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 nullable=true
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="string",
+     *                 example="Error message"
+     *             )
+     *         )
      *     )
      * )
      */
     public function update(UpdateUserRequest $request, string $id)
     {
         $validatedData = $request->validated();
+        $currentUser = Auth::user();
 
         try {
             $user = User::findOrFail($id);
+
+            if (!$currentUser->is_admin && $currentUser->id !== $user->id) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'You are not authorized to update this user.',
+                    'data' => null,
+                    'errors' => 'Unauthorized'
+                ], 403);
+            }
 
             // Atualizar apenas os campos que foram validados
             $user->update($validatedData);
@@ -223,6 +309,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Remove the specified resource from storage.
