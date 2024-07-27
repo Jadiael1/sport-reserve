@@ -33,13 +33,12 @@ class FieldController extends Controller
     {
         try {
             $fields = null;
-            if (Auth::user()->is_admin) {
+            if (Auth::user() && Auth::user()->is_admin) {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
                 $fields = Field::with(['images'])->paginate();
             }else{
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
                 $fields = Field::with(['images'])->where('status', '!=', 'inactive')->paginate();
-
             }
 
 
@@ -214,7 +213,7 @@ class FieldController extends Controller
     {
         try {
             $field = null;
-            if (Auth::user()->is_admin) {
+            if (Auth::user() && Auth::user()->is_admin) {
                 $field = Field::with(['images'])->findOrFail($id);
             } else {
                 $field = Field::with(['images'])->where('status', '!=', 'inactive')->findOrFail($id);
