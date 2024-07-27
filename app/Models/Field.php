@@ -69,4 +69,8 @@ class Field extends Model
     {
         return $this->hasMany(FieldImage::class);
     }
+
+    public function reservations(){
+        return $this->hasMany(Reservation::class);
+    }
 }
