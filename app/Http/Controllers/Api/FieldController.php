@@ -7,6 +7,7 @@ use App\Http\Requests\StoreFieldRequest;
 use App\Http\Requests\UpdateFieldRequest;
 use App\Models\Field;
 use Exception;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class FieldController extends Controller
@@ -31,8 +32,16 @@ class FieldController extends Controller
     public function index()
     {
         try {
-            /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
-            $fields = Field::with(['images'])->paginate();
+            $fields = null;
+            if (Auth::user()->is_admin) {
+                /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
+                $fields = Field::with(['images'])->paginate();
+            }else{
+                /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
+                $fields = Field::with(['images'])->where('status', '!=', 'inactive')->paginate();
+
+            }
+
 
             // Transforma os campos para incluir o path de imagem completos
             $fields->getCollection()->transform(function ($field) {
@@ -204,7 +213,12 @@ class FieldController extends Controller
     public function show(string $id)
     {
         try {
-            $field = Field::with(['images'])->findOrFail($id);
+            $field = null;
+            if (Auth::user()->is_admin) {
+                $field = Field::with(['images'])->findOrFail($id);
+            } else {
+                $field = Field::with(['images'])->where('status', '!=', 'inactive')->findOrFail($id);
+            }
 
             // Transforma os campos para incluir o path de imagem completos
             $field->images->transform(function ($image) {
@@ -432,14 +446,28 @@ class FieldController extends Controller
     {
         try {
             $field = Field::findOrFail($id);
-            $field->delete();
+            $hasReservations = $field->reservations()->exists();
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Field successfully deleted.',
-                'data' => null,
-                'errors' => null
-            ], 200);
+            if ($hasReservations) {
+                // Inativa o campo em vez de excluir
+                $field->status = 'inactive';
+                $field->save();
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Field successfully inactivated due to existing reservations.',
+                    'data' => $field,
+                    'errors' => null
+                ], 200);
+            } else {
+                // Exclui o campo
+                $field->delete();
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Field successfully deleted.',
+                    'data' => null,
+                    'errors' => null
+                ], 200);
+            }
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',

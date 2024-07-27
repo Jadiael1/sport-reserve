@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('location', 255)->comment("Field location");
             $table->string('type', 50)->comment("Field type (e.g., soccer, basketball)");
             $table->decimal('hourly_rate', 8, 2)->comment('Hourly rate for renting the field');
+            $table->string('status', 20)->default('active')->comment("Field status: active or inactive");
             $table->timestamps();
         });
     }

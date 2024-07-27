@@ -43,6 +43,11 @@ use Illuminate\Database\Eloquent\Model;
  *         type="array",
  *         @OA\Items(type="string"),
  *         description="Field images"
+ *     ),
+ *     @OA\Property(
+ *         property="status",
+ *         type="string",
+ *         description="Field status: active or inactive"
  *     )
  * )
  */
@@ -56,7 +61,8 @@ class Field extends Model
         'name',
         'location',
         'type',
-        'hourly_rate'
+        'hourly_rate',
+        'status'
     ];
 
     public function images()
