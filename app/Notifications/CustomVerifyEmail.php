@@ -42,7 +42,7 @@ class CustomVerifyEmail extends Notification
      */
     protected function verificationUrl($notifiable)
     {
-        $appUrl = env('SAP_URL', 'https://sport-reserve.juvhost.com');
+        $appUrl = env('SAP_URL');
         $apiUrl = "{$appUrl}/auth/email/verify/?id={$notifiable->getKey()}&expires=".now()->addMinutes(config('auth.verification.expire', 60))->timestamp."&signature=".sha1($notifiable->getEmailForVerification());
 
         return $apiUrl;
