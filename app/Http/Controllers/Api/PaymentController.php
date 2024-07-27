@@ -98,8 +98,9 @@ class PaymentController extends Controller
         $startTime = Carbon::parse($reservation->start_time);
         $endTime = Carbon::parse($reservation->end_time);
 
-        $durationInHours = $startTime->diffInHours($endTime);
-        $totalAmount = $durationInHours * $reservation->field->hourly_rate * 100;
+        $durationInMinutes = $startTime->diffInMinutes($endTime);
+        $pricePerMinute = $reservation->field->hourly_rate / 60;
+        $totalAmount = round($durationInMinutes * $pricePerMinute * 100, 2);
 
         $body = array(
             'customer' => array(
@@ -133,10 +134,7 @@ class PaymentController extends Controller
                     )
                 )
             ),
-            // 'redirect_url' => env('SAP_URL'),
-            // 'return_url' => env('SAP_URL'),
             'soft_descriptor' => 'sport-reserve',
-            // 'payment_notification_urls' => array(env('APP_URL') . "/api/v1/payments/notify")
         );
         $appUrl = env('APP_URL');
         if ($appUrl && strpos($appUrl, 'localhost') === false) {
