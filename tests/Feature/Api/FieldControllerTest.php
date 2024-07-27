@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class FieldControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    // use RefreshDatabase;
 
     /** @test */
     public function can_list_fields()
@@ -54,7 +54,7 @@ class FieldControllerTest extends TestCase
                 'location' => 'Test Location',
                 'type' => 'Football',
                 'hourly_rate' => 50,
-                'images' => [UploadedFile::fake()->image('field.jpg')]
+                'images' => [UploadedFile::fake()->image('field.jpg', 1024, 768)]
             ]);
 
         // checks whether field creation was successful

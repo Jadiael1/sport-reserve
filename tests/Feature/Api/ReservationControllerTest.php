@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class ReservationControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    // use RefreshDatabase;
 
     /** @test */
     public function can_list_reservations()

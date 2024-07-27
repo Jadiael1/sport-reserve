@@ -10,7 +10,7 @@ use Tests\TestCase;
 
 class PaymentControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    // use RefreshDatabase;
 
     /** @test */
     public function user_can_create_payment()
