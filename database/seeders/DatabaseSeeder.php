@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+use App\Models\Field;
+use App\Models\FieldAvailability;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -21,5 +24,14 @@ class DatabaseSeeder extends Seeder
         //     'name' => 'Test User',
         //     'email' => 'test@example.com',
         // ]);
+
+        // Field::factory()
+        //     ->count(10)
+        //     ->create()
+        //     ->each(function ($field) {
+        //         FieldAvailability::factory()
+        //             ->count(7) // Create availability for each day of the week
+        //             ->create(['field_id' => $field->id]);
+        //     });
     }
 }
