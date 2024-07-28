@@ -574,6 +574,53 @@ class FieldController extends Controller
     }
 
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/fields/availabilities",
+     *     operationId="getFieldAvailabilitiesList",
+     *     tags={"FieldAvailabilities"},
+     *     summary="Get list of field availabilities",
+     *     description="Returns list of field availabilities",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/FieldAvailability"))
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to retrieve field availabilities",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to retrieve field availabilities."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
+     *     )
+     * )
+     */
+    public function indexAvailability()
+    {
+        try {
+            $fieldAvailabilities = FieldAvailability::paginate();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Field availabilities successfully recovered.',
+                'data' => $fieldAvailabilities,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve field availabilities.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
 
     /**
      * Store field availability

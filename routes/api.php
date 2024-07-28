@@ -71,6 +71,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum', 'admin'])->delete('/{id}', [FieldController::class, 'destroy'])->name('fields.destroy');
 
         // Rotas para disponibilidades de campos
+        Route::middleware(['auth:sanctum', 'admin'])->get('/availabilities', [FieldController::class, 'indexAvailability'])->name('fields.availabilities.index');
         Route::middleware(['auth:sanctum', 'admin'])->post('/{fieldId}/availabilities', [FieldController::class, 'storeAvailability'])->name('fields.availabilities.store');
         Route::middleware(['auth:sanctum', 'admin'])->patch('/{fieldId}/availabilities/{availabilityId}', [FieldController::class, 'updateAvailability'])->name('fields.availabilities.update');
         Route::middleware(['auth:sanctum', 'admin'])->delete('/{fieldId}/availabilities/{availabilityId}', [FieldController::class, 'deleteAvailability'])->name('fields.availabilities.delete');
