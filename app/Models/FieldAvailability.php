@@ -57,17 +57,4 @@ class FieldAvailability extends Model
     {
         return $this->belongsTo(Field::class);
     }
-
-    public static function isWithinAvailability($fieldId, $startTime, $endTime)
-    {
-        $dayOfWeek = Carbon::parse($startTime)->format('l');
-
-        return self::where('field_id', $fieldId)
-            ->where('day_of_week', $dayOfWeek)
-            ->where(function($query) use ($startTime, $endTime) {
-                $query->where('start_time', '<=', $startTime)
-                      ->where('end_time', '>=', $endTime);
-            })
-            ->exists();
-    }
 }

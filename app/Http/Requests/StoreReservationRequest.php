@@ -47,7 +47,7 @@ class StoreReservationRequest extends FormRequest
                     if ($this->isOverlapping($value, $this->end_time, $this->field_id)) {
                         $fail('The reservation times overlap with an existing reservation.');
                     }
-                    if (!FieldAvailability::isWithinAvailability($this->field_id, $value, $this->end_time)) {
+                    if (!$this->isWithinAvailability($this->field_id, $value, $this->end_time)) {
                         $fail('The reservation time is not within the field\'s availability.');
                     }
                 }
@@ -111,6 +111,19 @@ class StoreReservationRequest extends FormRequest
         foreach ($pendingReservations as $reservation) {
             $reservation->update(['status' => 'CANCELED']);
         }
+    }
+
+    protected function isWithinAvailability($fieldId, $startTime, $endTime)
+    {
+        $dayOfWeek = Carbon::parse($startTime)->format('l');
+
+        return FieldAvailability::where('field_id', $fieldId)
+            ->where('day_of_week', $dayOfWeek)
+            ->where(function($query) use ($startTime, $endTime) {
+                $query->where('start_time', '<=', $startTime)
+                      ->where('end_time', '>=', $endTime);
+            })
+            ->exists();
     }
 
     public function messages()
