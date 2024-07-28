@@ -49,7 +49,7 @@ class UpdateFieldAvailabilityRequest extends FormRequest
     {
         return [
             'day_of_week' => 'sometimes|required|string|max:10',
-            'start_time' => 'sometimes|required|date_format:H:i:s',
+            'start_time' => 'sometimes|required|date_format:H:i',
             'end_time' => 'sometimes|required|date_format:H:i|after:start_time',
         ];
     }
