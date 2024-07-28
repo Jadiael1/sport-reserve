@@ -662,16 +662,32 @@ class FieldController extends Controller
      */
     public function storeAvailability(StoreFieldAvailabilityRequest $request, $fieldId)
     {
-        $field = Field::findOrFail($fieldId);
+        $validatedData = $request->validated();
 
-        if (!Auth::user()->is_admin) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        try {
+            $field = Field::findOrFail($fieldId);
+
+            if (!Auth::user()->is_admin) {
+                return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+            }
+
+            $availability = new FieldAvailability($validatedData);
+            $field->availabilities()->save($availability);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Availability created successfully',
+                'data' => $availability,
+                'errors' => null
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to store field availabilities.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
         }
-
-        $availability = new FieldAvailability($request->validated());
-        $field->availabilities()->save($availability);
-
-        return response()->json(['status' => 'success', 'message' => 'Availability created successfully', 'data' => $availability], 201);
     }
 
     /**
