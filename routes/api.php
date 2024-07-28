@@ -69,11 +69,13 @@ Route::prefix('v1')->group(function () {
         Route::get('/{id}', [FieldController::class, 'show'])->name('fields.show');
         Route::middleware(['auth:sanctum', 'admin'])->patch('/{id}', [FieldController::class, 'update'])->name('fields.update');
         Route::middleware(['auth:sanctum', 'admin'])->delete('/{id}', [FieldController::class, 'destroy'])->name('fields.destroy');
+    });
 
+    Route::prefix('fieldAvailabilities')->group(function(){
         // Rotas para disponibilidades de campos
-        Route::middleware(['auth:sanctum', 'admin'])->get('/availabilities', [FieldController::class, 'indexAvailability'])->name('fields.availabilities.index');
-        Route::middleware(['auth:sanctum', 'admin'])->post('/{fieldId}/availabilities', [FieldController::class, 'storeAvailability'])->name('fields.availabilities.store');
-        Route::middleware(['auth:sanctum', 'admin'])->patch('/{fieldId}/availabilities/{availabilityId}', [FieldController::class, 'updateAvailability'])->name('fields.availabilities.update');
-        Route::middleware(['auth:sanctum', 'admin'])->delete('/{fieldId}/availabilities/{availabilityId}', [FieldController::class, 'deleteAvailability'])->name('fields.availabilities.delete');
+        Route::middleware(['auth:sanctum', 'admin'])->get('/', [FieldController::class, 'indexAvailability'])->name('fieldAvailabilities.index');
+        Route::middleware(['auth:sanctum', 'admin'])->post('/{fieldId}/availabilities', [FieldController::class, 'storeAvailability'])->name('fieldAvailabilities.store');
+        Route::middleware(['auth:sanctum', 'admin'])->patch('/{fieldId}/availabilities/{availabilityId}', [FieldController::class, 'updateAvailability'])->name('fieldAvailabilities.update');
+        Route::middleware(['auth:sanctum', 'admin'])->delete('/{fieldId}/availabilities/{availabilityId}', [FieldController::class, 'deleteAvailability'])->name('fieldAvailabilities.delete');
     });
 });

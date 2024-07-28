@@ -576,12 +576,11 @@ class FieldController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/v1/fields/availabilities",
+     *     path="/api/v1/fieldAvailabilities",
      *     operationId="getFieldAvailabilitiesList",
      *     tags={"FieldAvailabilities"},
      *     summary="Get list of field availabilities",
      *     description="Returns list of field availabilities",
-     *     security={{"bearerAuth": {}}},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
@@ -627,9 +626,9 @@ class FieldController extends Controller
      */
     /**
      * @OA\Post(
-     *     path="/api/v1/fields/{fieldId}/availabilities",
+     *     path="/api/v1/fieldAvailabilities/{fieldId}",
      *     operationId="storeFieldAvailability",
-     *     tags={"Fields"},
+     *     tags={"FieldAvailabilities"},
      *     summary="Store field availability",
      *     description="Stores a new availability for a specific field",
      *     security={{"bearerAuth": {}}},
@@ -680,9 +679,9 @@ class FieldController extends Controller
      */
     /**
      * @OA\Patch(
-     *     path="/api/v1/fields/{fieldId}/availabilities/{availabilityId}",
+     *     path="/api/v1/fieldAvailabilities/{fieldId}/availabilities/{availabilityId}",
      *     operationId="updateFieldAvailability",
-     *     tags={"Fields"},
+     *     tags={"FieldAvailabilities"},
      *     summary="Update field availability",
      *     description="Updates an existing availability for a specific field",
      *     security={{"bearerAuth": {}}},
@@ -740,9 +739,9 @@ class FieldController extends Controller
      */
     /**
      * @OA\Delete(
-     *     path="/api/v1/fields/{fieldId}/availabilities/{availabilityId}",
+     *     path="/api/v1/fieldAvailabilities/{fieldId}/availabilities/{availabilityId}",
      *     operationId="deleteFieldAvailability",
-     *     tags={"Fields"},
+     *     tags={"FieldAvailabilities"},
      *     summary="Delete field availability",
      *     description="Deletes an existing availability for a specific field",
      *     security={{"bearerAuth": {}}},
