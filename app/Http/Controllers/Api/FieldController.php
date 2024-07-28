@@ -581,10 +581,16 @@ class FieldController extends Controller
      *     tags={"FieldAvailabilities"},
      *     summary="Get list of field availabilities",
      *     description="Returns list of field availabilities",
+     *     security={{"bearerAuth": {}}},
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/FieldAvailability"))
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Field availabilities successfully recovered."),
+     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/FieldAvailability")),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=500,
@@ -646,7 +652,12 @@ class FieldController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/FieldAvailability")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Availability created successfully."),
+     *             @OA\Property(property="data", ref="#/components/schemas/FieldAvailability"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=403,
@@ -656,6 +667,16 @@ class FieldController extends Controller
      *             @OA\Property(property="message", type="string", example="Unauthorized"),
      *             @OA\Property(property="data", type="null"),
      *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to store field availability",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to store field availability."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
      *         )
      *     )
      * )
@@ -676,14 +697,14 @@ class FieldController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Availability created successfully',
+                'message' => 'Availability created successfully.',
                 'data' => $availability,
                 'errors' => null
             ], 201);
         } catch (Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to store field availabilities.',
+                'message' => 'Failed to store field availability.',
                 'data' => null,
                 'errors' => $e->getMessage()
             ], 500);
@@ -722,7 +743,12 @@ class FieldController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/FieldAvailability")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Availability updated successfully."),
+     *             @OA\Property(property="data", ref="#/components/schemas/FieldAvailability"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=403,
@@ -733,6 +759,16 @@ class FieldController extends Controller
      *             @OA\Property(property="data", type="null"),
      *             @OA\Property(property="errors", type="null")
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to update field availability",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to update field availability."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -742,12 +778,21 @@ class FieldController extends Controller
         $availability = FieldAvailability::findOrFail($availabilityId);
 
         if (!Auth::user()->is_admin) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized.',
+                'data' => null,
+                'errors' => null
+            ], 403);
         }
 
         $availability->update($request->validated());
-
-        return response()->json(['status' => 'success', 'message' => 'Availability updated successfully', 'data' => $availability], 200);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Availability updated successfully.',
+            'data' => $availability,
+            'errors' => null
+        ], 200);
     }
 
     /**
@@ -794,6 +839,16 @@ class FieldController extends Controller
      *             @OA\Property(property="data", type="null"),
      *             @OA\Property(property="errors", type="null")
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to delete field availability",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to delete field availability."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
      *     )
      * )
      */
@@ -803,11 +858,21 @@ class FieldController extends Controller
         $availability = FieldAvailability::findOrFail($availabilityId);
 
         if (!Auth::user()->is_admin) {
-            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized.',
+                'data' => null,
+                'errors' => null
+            ], 403);
         }
 
         $availability->delete();
 
-        return response()->json(['status' => 'success', 'message' => 'Availability deleted successfully'], 200);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Availability deleted successfully.',
+            'data' => null,
+            'errors' => null
+        ], 200);
     }
 }

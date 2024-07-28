@@ -8,7 +8,6 @@ use Illuminate\Foundation\Http\FormRequest;
  * @OA\Schema(
  *     schema="StoreFieldAvailabilityRequest",
  *     type="object",
- *     title="Store Field Availability Request",
  *     required={"day_of_week", "start_time", "end_time"},
  *     @OA\Property(
  *         property="day_of_week",
@@ -21,14 +20,14 @@ use Illuminate\Foundation\Http\FormRequest;
  *         type="string",
  *         format="time",
  *         description="Start time",
- *         example="08:00:00"
+ *         example="08:00"
  *     ),
  *     @OA\Property(
  *         property="end_time",
  *         type="string",
  *         format="time",
  *         description="End time",
- *         example="12:00:00"
+ *         example="12:00"
  *     )
  * )
  */
@@ -51,8 +50,8 @@ class StoreFieldAvailabilityRequest extends FormRequest
     {
         return [
             'day_of_week' => 'required|string|max:10',
-            'start_time' => 'required|date_format:H:i:s',
-            'end_time' => 'required|date_format:H:i:s|after:start_time',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
         ];
     }
 
