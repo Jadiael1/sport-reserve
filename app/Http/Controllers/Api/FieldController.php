@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreFieldAvailabilityRequest;
 use App\Http\Requests\StoreFieldRequest;
+use App\Http\Requests\UpdateFieldAvailabilityRequest;
 use App\Http\Requests\UpdateFieldRequest;
 use App\Models\Field;
+use App\Models\FieldAvailability;
 use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -568,5 +571,181 @@ class FieldController extends Controller
                 'errors' => $e->getMessage()
             ], 500);
         }
+    }
+
+
+
+    /**
+     * Store field availability
+     */
+    /**
+     * @OA\Post(
+     *     path="/api/v1/fields/{fieldId}/availabilities",
+     *     operationId="storeFieldAvailability",
+     *     tags={"Fields"},
+     *     summary="Store field availability",
+     *     description="Stores a new availability for a specific field",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="fieldId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Field ID"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/StoreFieldAvailabilityRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/FieldAvailability")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized"),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     )
+     * )
+     */
+    public function storeAvailability(StoreFieldAvailabilityRequest $request, $fieldId)
+    {
+        $field = Field::findOrFail($fieldId);
+
+        if (!Auth::user()->is_admin) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $availability = new FieldAvailability($request->validated());
+        $field->availabilities()->save($availability);
+
+        return response()->json(['status' => 'success', 'message' => 'Availability created successfully', 'data' => $availability], 201);
+    }
+
+    /**
+     * Update field availability
+     */
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/fields/{fieldId}/availabilities/{availabilityId}",
+     *     operationId="updateFieldAvailability",
+     *     tags={"Fields"},
+     *     summary="Update field availability",
+     *     description="Updates an existing availability for a specific field",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="fieldId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Field ID"
+     *     ),
+     *     @OA\Parameter(
+     *         name="availabilityId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Field Availability ID"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UpdateFieldAvailabilityRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/FieldAvailability")
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized"),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     )
+     * )
+     */
+    public function updateAvailability(UpdateFieldAvailabilityRequest $request, $fieldId, $availabilityId)
+    {
+        $field = Field::findOrFail($fieldId);
+        $availability = FieldAvailability::findOrFail($availabilityId);
+
+        if (!Auth::user()->is_admin) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $availability->update($request->validated());
+
+        return response()->json(['status' => 'success', 'message' => 'Availability updated successfully', 'data' => $availability], 200);
+    }
+
+    /**
+     * Delete field availability
+     */
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/fields/{fieldId}/availabilities/{availabilityId}",
+     *     operationId="deleteFieldAvailability",
+     *     tags={"Fields"},
+     *     summary="Delete field availability",
+     *     description="Deletes an existing availability for a specific field",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="fieldId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Field ID"
+     *     ),
+     *     @OA\Parameter(
+     *         name="availabilityId",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="Field Availability ID"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Availability deleted successfully."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Unauthorized"),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     )
+     * )
+     */
+    public function deleteAvailability($fieldId, $availabilityId)
+    {
+        $field = Field::findOrFail($fieldId);
+        $availability = FieldAvailability::findOrFail($availabilityId);
+
+        if (!Auth::user()->is_admin) {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized'], 403);
+        }
+
+        $availability->delete();
+
+        return response()->json(['status' => 'success', 'message' => 'Availability deleted successfully'], 200);
     }
 }

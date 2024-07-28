@@ -3,35 +3,17 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\FieldAvailability;
 use App\Models\Reservation;
 use Carbon\Carbon;
 
 /**
  * @OA\Schema(
  *     schema="StoreReservationRequest",
- *     type="object",
- *     title="Store Reservation Request",
  *     required={"field_id", "start_time", "end_time"},
- *     @OA\Property(
- *         property="field_id",
- *         type="integer",
- *         description="ID of the field",
- *         example=1
- *     ),
- *     @OA\Property(
- *         property="start_time",
- *         type="string",
- *         format="date-time",
- *         description="Start time of the reservation",
- *         example="2023-06-30T14:00:00Z"
- *     ),
- *     @OA\Property(
- *         property="end_time",
- *         type="string",
- *         format="date-time",
- *         description="End time of the reservation",
- *         example="2023-06-30T15:00:00Z"
- *     )
+ *     @OA\Property(property="field_id", type="integer", example=1),
+ *     @OA\Property(property="start_time", type="string", format="date-time", example="2023-06-30T14:00:00Z"),
+ *     @OA\Property(property="end_time", type="string", format="date-time", example="2023-06-30T15:00:00Z")
  * )
  */
 class StoreReservationRequest extends FormRequest
@@ -65,6 +47,9 @@ class StoreReservationRequest extends FormRequest
                     if ($this->isOverlapping($value, $this->end_time, $this->field_id)) {
                         $fail('The reservation times overlap with an existing reservation.');
                     }
+                    if (!FieldAvailability::isWithinAvailability($this->field_id, $value, $this->end_time)) {
+                        $fail('The reservation time is not within the field\'s availability.');
+                    }
                 }
             ],
             'end_time' => [
@@ -79,9 +64,17 @@ class StoreReservationRequest extends FormRequest
         ];
     }
 
-    /**
-     * Check if the reservation times overlap with any existing reservation.
-     */
+    protected function isValidDateFormat($date)
+    {
+        $formats = ['Y-m-d H:i:s', 'Y-m-d\TH:i:s.v\Z', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i'];
+        foreach ($formats as $format) {
+            if (\DateTime::createFromFormat($format, $date) !== false) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected function isOverlapping($startTime, $endTime, $fieldId)
     {
         $this->cleanupPendingReservations($fieldId, $startTime, $endTime);
@@ -98,9 +91,6 @@ class StoreReservationRequest extends FormRequest
             })->exists();
     }
 
-    /**
-     * Cleanup pending reservations older than 30 minutes.
-     */
     protected function cleanupPendingReservations($fieldId, $startTime, $endTime)
     {
         $thresholdTime = Carbon::now('America/Recife')->subMinutes(30);
@@ -121,20 +111,6 @@ class StoreReservationRequest extends FormRequest
         foreach ($pendingReservations as $reservation) {
             $reservation->update(['status' => 'CANCELED']);
         }
-    }
-
-    /**
-     * Check if the given date is in a valid format.
-     */
-    protected function isValidDateFormat($date)
-    {
-        $formats = ['Y-m-d H:i:s', 'Y-m-d\TH:i:s.v\Z', 'Y-m-d\TH:i:s', 'Y-m-d\TH:i'];
-        foreach ($formats as $format) {
-            if (\DateTime::createFromFormat($format, $date) !== false) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public function messages()

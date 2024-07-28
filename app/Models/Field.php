@@ -80,4 +80,9 @@ class Field extends Model
     {
         return $this->hasMany(Reservation::class);
     }
+
+    public function availabilities()
+    {
+        return $this->hasMany(FieldAvailability::class);
+    }
 }
