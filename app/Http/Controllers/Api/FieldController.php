@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateFieldRequest;
 use App\Models\Field;
 use App\Models\FieldAvailability;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -582,14 +583,59 @@ class FieldController extends Controller
      *     summary="Get list of field availabilities",
      *     description="Returns list of field availabilities",
      *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"created_at", "updated_at", "start_time", "end_time", "day_of_week"},
+     *             default="created_at"
+     *         ),
+     *         description="Field to sort by"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"asc", "desc"},
+     *             default="desc"
+     *         ),
+     *         description="Sort order"
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="string", example="success"),
      *             @OA\Property(property="message", type="string", example="Field availabilities successfully recovered."),
-     *             @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/FieldAvailability")),
+     *             @OA\Property(property="data",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/FieldAvailability")),
+     *                 @OA\Property(property="first_page_url", type="string", example="http://api-sport-reserve.juvhost.com/api/v1/fieldAvailabilities?page=1"),
+     *                 @OA\Property(property="from", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=2),
+     *                 @OA\Property(property="last_page_url", type="string", example="http://api-sport-reserve.juvhost.com/api/v1/fieldAvailabilities?page=2"),
+     *                 @OA\Property(property="next_page_url", type="string", example="http://api-sport-reserve.juvhost.com/api/v1/fieldAvailabilities?page=2"),
+     *                 @OA\Property(property="path", type="string", example="http://api-sport-reserve.juvhost.com/api/v1/fieldAvailabilities"),
+     *                 @OA\Property(property="per_page", type="integer", example=15),
+     *                 @OA\Property(property="prev_page_url", type="string", example=null),
+     *                 @OA\Property(property="to", type="integer", example=15),
+     *                 @OA\Property(property="total", type="integer", example=20)
+     *             ),
      *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid sort field",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Invalid sort field."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Invalid sort field.")
      *         )
      *     ),
      *     @OA\Response(
@@ -604,10 +650,23 @@ class FieldController extends Controller
      *     )
      * )
      */
-    public function indexAvailability()
+    public function indexAvailability(Request $request)
     {
         try {
-            $fieldAvailabilities = FieldAvailability::paginate();
+            $sort_by = $request->query('sort_by', 'created_at');
+            $sort_order = $request->query('sort_order', 'desc');
+
+            $validSortFields = ['created_at', 'updated_at', 'start_time', 'end_time', 'day_of_week'];
+            if (!in_array($sort_by, $validSortFields)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid sort field.',
+                    'data' => null,
+                    'errors' => 'Invalid sort field.'
+                ], 400);
+            }
+
+            $fieldAvailabilities = FieldAvailability::orderBy($sort_by, $sort_order)->paginate();
 
             return response()->json([
                 'status' => 'success',
