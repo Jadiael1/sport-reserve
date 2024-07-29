@@ -7,6 +7,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
@@ -22,17 +23,165 @@ class UserController extends Controller
      *     summary="Get list of users",
      *     description="Returns list of users",
      *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"name", "cpf", "phone", "email", "is_admin", "email_verified_at", "remember_token", "created_at", "updated_at"},
+     *             default="name"
+     *         ),
+     *         description="Field to sort by"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"asc", "desc"},
+     *             default="asc"
+     *         ),
+     *         description="Sort order"
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/User"))
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 example="success"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Users retrieved successfully."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 @OA\Property(
+     *                     property="current_page",
+     *                     type="integer",
+     *                     example=1
+     *                 ),
+     *                 @OA\Property(
+     *                     property="data",
+     *                     type="array",
+     *                     @OA\Items(ref="#/components/schemas/User")
+     *                 ),
+     *                 @OA\Property(
+     *                     property="first_page_url",
+     *                     type="string",
+     *                     example="http://api.example.com/users?page=1"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="from",
+     *                     type="integer",
+     *                     example=1
+     *                 ),
+     *                 @OA\Property(
+     *                     property="last_page",
+     *                     type="integer",
+     *                     example=10
+     *                 ),
+     *                 @OA\Property(
+     *                     property="last_page_url",
+     *                     type="string",
+     *                     example="http://api.example.com/users?page=10"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="next_page_url",
+     *                     type="string",
+     *                     example="http://api.example.com/users?page=2"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="path",
+     *                     type="string",
+     *                     example="http://api.example.com/users"
+     *                 ),
+     *                 @OA\Property(
+     *                     property="per_page",
+     *                     type="integer",
+     *                     example=15
+     *                 ),
+     *                 @OA\Property(
+     *                     property="prev_page_url",
+     *                     type="string",
+     *                     example=null
+     *                 ),
+     *                 @OA\Property(
+     *                     property="to",
+     *                     type="integer",
+     *                     example=15
+     *                 ),
+     *                 @OA\Property(
+     *                     property="total",
+     *                     type="integer",
+     *                     example=150
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to retrieve users",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 example="error"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Failed to retrieve users."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 nullable=true
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="string",
+     *                 example="Error message"
+     *             )
+     *         )
      *     )
      * )
      */
-    public function index()
+
+    public function index(Request $request)
     {
+        $sort_by = $request->query('sort_by', 'name');
+        $sort_order = $request->query('sort_order', 'asc');
+
+        $validSortFields = ['name', 'cpf', 'phone', 'email', 'is_admin', 'email_verified_at', 'remember_token', 'created_at', 'updated_at'];
+        if (!in_array($sort_by, $validSortFields)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid sort field.',
+                'data' => null,
+                'errors' => 'Invalid sort field.'
+            ], 400);
+        }
+
+        if (!in_array($sort_order, ['asc', 'desc'])) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Invalid sort order.',
+                'data' => null,
+                'errors' => 'Invalid sort order.'
+            ], 400);
+        }
+
         try {
-            $users = User::paginate();
+            $users = User::orderBy($sort_by, $sort_order)->paginate();
             return response()->json([
                 'status' => 'success',
                 'message' => 'Users retrieved successfully.',
