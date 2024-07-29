@@ -158,8 +158,8 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $sort_by = $request->query('sort_by', 'name');
-        $sort_order = $request->query('sort_order', 'asc');
+        $sort_by = $request->query('sort_by', 'created_at');
+        $sort_order = $request->query('sort_order', 'desc');
 
         $validSortFields = ['name', 'cpf', 'phone', 'email', 'is_admin', 'email_verified_at', 'remember_token', 'created_at', 'updated_at'];
         if (!in_array($sort_by, $validSortFields)) {

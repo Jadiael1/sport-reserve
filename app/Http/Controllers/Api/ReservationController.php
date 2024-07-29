@@ -69,8 +69,8 @@ class ReservationController extends Controller
     public function index(Request $request)
     {
         try {
-            $sortBy = $request->query('sort_by', 'start_time'); // Default sort by start_time
-            $sortOrder = $request->query('sort_order', 'asc'); // Default sort order asc
+            $sortBy = $request->query('sort_by', 'created_at'); // Default sort by start_time
+            $sortOrder = $request->query('sort_order', 'desc'); // Default sort order asc
 
             $validSortFields = ['start_time', 'end_time', 'status', 'created_at', 'updated_at'];
 
