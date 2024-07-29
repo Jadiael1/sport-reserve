@@ -311,8 +311,7 @@ class UserController extends Controller
      *             ),
      *             @OA\Property(
      *                 property="data",
-     *                 type="object",
-     *                 nullable=true
+     *                 type="null"
      *             ),
      *             @OA\Property(
      *                 property="errors",
@@ -337,8 +336,7 @@ class UserController extends Controller
      *             ),
      *             @OA\Property(
      *                 property="data",
-     *                 type="object",
-     *                 nullable=true
+     *                 type="null"
      *             ),
      *             @OA\Property(
      *                 property="errors",
