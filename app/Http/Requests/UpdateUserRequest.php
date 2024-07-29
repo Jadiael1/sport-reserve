@@ -47,6 +47,12 @@ use Illuminate\Foundation\Http\FormRequest;
  *         format="password",
  *         description="Password confirmation",
  *         example="password123"
+ *     ),
+ *     @OA\Property(
+ *         property="is_admin",
+ *         type="boolean",
+ *         description="Admin status of the user",
+ *         example=true
  *     )
  * )
  */
@@ -74,6 +80,7 @@ class UpdateUserRequest extends FormRequest
             'phone' => 'sometimes|required|string|max:20',
             'email' => 'sometimes|required|email|unique:users,email,' . $userId,
             'password' => 'sometimes|required|string|min:8',
+            'is_admin' => 'sometimes|required|boolean',
         ];
     }
 }
