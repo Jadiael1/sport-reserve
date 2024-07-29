@@ -215,24 +215,150 @@ class UserController extends Controller
      *     operationId="storeUser",
      *     tags={"Users"},
      *     summary="Store a new user",
-     *     description="Stores a new user and returns the user data",
+     *     description="Stores a new user and returns the user data. Only administrators can set the is_admin field.",
      *     security={{"bearerAuth": {}}},
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(ref="#/components/schemas/StoreUserRequest")
+     *         @OA\JsonContent(
+     *             required={"name", "email", "cpf", "phone", "password", "password_confirmation"},
+     *             @OA\Property(
+     *                 property="name",
+     *                 type="string",
+     *                 description="Name of the user",
+     *                 example="John Doe"
+     *             ),
+     *             @OA\Property(
+     *                 property="email",
+     *                 type="string",
+     *                 format="email",
+     *                 description="Email of the user",
+     *                 example="john.doe@example.com"
+     *             ),
+     *             @OA\Property(
+     *                 property="cpf",
+     *                 type="string",
+     *                 description="CPF of the user",
+     *                 example="12345678901"
+     *             ),
+     *             @OA\Property(
+     *                 property="phone",
+     *                 type="string",
+     *                 description="Phone number of the user",
+     *                 example="(81) 99999-9999"
+     *             ),
+     *             @OA\Property(
+     *                 property="password",
+     *                 type="string",
+     *                 format="password",
+     *                 description="Password of the user",
+     *                 example="password123"
+     *             ),
+     *             @OA\Property(
+     *                 property="password_confirmation",
+     *                 type="string",
+     *                 format="password",
+     *                 description="Password confirmation",
+     *                 example="password123"
+     *             ),
+     *             @OA\Property(
+     *                 property="is_admin",
+     *                 type="boolean",
+     *                 description="Admin status of the user. Only administrators can set this field.",
+     *                 example=true
+     *             )
+     *         )
      *     ),
      *     @OA\Response(
      *         response=201,
      *         description="Successful operation",
-     *         @OA\JsonContent(ref="#/components/schemas/User")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 example="success"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="User created successfully. Please check your email to verify your account."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/User"
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="string",
+     *                 nullable=true
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad Request",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 example="error"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Validation error."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 nullable=true
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="object"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to create user",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="status",
+     *                 type="string",
+     *                 example="error"
+     *             ),
+     *             @OA\Property(
+     *                 property="message",
+     *                 type="string",
+     *                 example="Failed to create user."
+     *             ),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="object",
+     *                 nullable=true
+     *             ),
+     *             @OA\Property(
+     *                 property="errors",
+     *                 type="string",
+     *                 example="Error message"
+     *             )
+     *         )
      *     )
      * )
      */
     public function store(StoreUserRequest $request)
     {
         $validatedData = $request->validated();
+        $currentUser = Auth::user();
 
         $isAdmin = User::count() == 0;
+
+        if ($currentUser && $currentUser->is_admin && isset($validatedData['is_admin'])) {
+            $isAdmin = $validatedData['is_admin'];
+        }
 
         try {
             $user = User::create([

@@ -48,6 +48,12 @@ use Illuminate\Foundation\Http\FormRequest;
  *         format="password",
  *         description="Password confirmation",
  *         example="password123"
+ *     ),
+ *     @OA\Property(
+ *         property="is_admin",
+ *         type="boolean",
+ *         description="Admin status of the user",
+ *         example=true
  *     )
  * )
  */
@@ -74,6 +80,7 @@ class StoreUserRequest extends FormRequest
             'phone' => 'required|string|max:15|unique:users,phone',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+            'is_admin' => 'sometimes|boolean',
         ];
     }
 
@@ -103,6 +110,7 @@ class StoreUserRequest extends FormRequest
             'password.string' => 'The password must be a string.',
             'password.min' => 'The password must be at least 8 characters.',
             'password.confirmed' => 'The password confirmation does not match.',
+            'is_admin.boolean' => 'The is_admin field must be true or false.',
         ];
     }
 }
