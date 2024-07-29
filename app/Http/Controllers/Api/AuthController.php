@@ -167,22 +167,40 @@ class AuthController extends Controller
      *             @OA\Property(property="data", type="object", nullable=true),
      *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Token has expired or is invalid",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Token has expired or is invalid."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
      *     )
      * )
      */
     public function signout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $user = $request->user();
+        $token = $user ? $user->currentAccessToken() : null;
 
-        // $request->session()->invalidate();
-        // $request->session()->regenerateToken();
+        if ($token) {
+            $token->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Logout successful.',
+                'data' => null,
+                'errors' => null
+            ], 200);
+        }
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'Logout successful.',
+            'status' => 'error',
+            'message' => 'Token has expired or is invalid.',
             'data' => null,
             'errors' => null
-        ], 200);
+        ], 401);
     }
 
     /**
