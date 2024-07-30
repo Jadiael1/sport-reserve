@@ -369,8 +369,6 @@ class UserController extends Controller
                 'is_admin' => $isAdmin,
             ]);
 
-            $token = Str::random(60);
-            $user->email_verification_token = $token;
             $user->sendEmailVerificationNotification();
 
             return response()->json([
