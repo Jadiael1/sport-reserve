@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FieldAvailabilityController;
 use App\Http\Controllers\Api\FieldController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\ReservationController;
@@ -73,9 +74,9 @@ Route::prefix('v1')->group(function () {
 
     Route::prefix('fieldAvailabilities')->group(function(){
         // Rotas para disponibilidades de campos
-        Route::middleware(['auth:sanctum', 'admin'])->get('/', [FieldController::class, 'indexAvailability'])->name('fieldAvailabilities.index');
-        Route::middleware(['auth:sanctum', 'admin'])->post('/{fieldId}/availabilities', [FieldController::class, 'storeAvailability'])->name('fieldAvailabilities.store');
-        Route::middleware(['auth:sanctum', 'admin'])->patch('/{fieldId}/availabilities/{availabilityId}', [FieldController::class, 'updateAvailability'])->name('fieldAvailabilities.update');
-        Route::middleware(['auth:sanctum', 'admin'])->delete('/{fieldId}/availabilities/{availabilityId}', [FieldController::class, 'deleteAvailability'])->name('fieldAvailabilities.delete');
+        Route::middleware(['auth:sanctum', 'admin'])->get('/', [FieldAvailabilityController::class, 'index'])->name('fieldAvailabilities.index');
+        Route::middleware(['auth:sanctum', 'admin'])->post('/{fieldId}/availabilities', [FieldAvailabilityController::class, 'store'])->name('fieldAvailabilities.store');
+        Route::middleware(['auth:sanctum', 'admin'])->patch('/{fieldId}/availabilities/{availabilityId}', [FieldAvailabilityController::class, 'update'])->name('fieldAvailabilities.update');
+        Route::middleware(['auth:sanctum', 'admin'])->delete('/{fieldId}/availabilities/{availabilityId}', [FieldAvailabilityController::class, 'destroy'])->name('fieldAvailabilities.delete');
     });
 });
