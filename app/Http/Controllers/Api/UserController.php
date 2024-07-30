@@ -7,6 +7,7 @@ use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -625,6 +626,208 @@ class UserController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'Failed to delete user.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/users/{id}/toggle-active",
+     *     operationId="toggleUserActive",
+     *     tags={"Users"},
+     *     summary="Toggle user active status",
+     *     description="Activate or deactivate a user based on a flag, or toggle the current status if no flag is provided",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="active", type="boolean", nullable=true, description="Optional flag to set user active status")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User active status updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="User active status updated successfully."),
+     *             @OA\Property(property="data", ref="#/components/schemas/User"),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Bad request."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="User not found."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to update user active status",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to update user active status."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     )
+     * )
+     */
+    public function toggleActive(Request $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($request->has('active')) {
+                $user->active = $request->input('active');
+            } else {
+                $user->active = !$user->active;
+            }
+
+            $user->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User active status updated successfully.',
+                'data' => $user,
+                'errors' => null
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 404);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update user active status.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/users/{id}/toggle-confirmation",
+     *     operationId="toggleUserConfirmation",
+     *     tags={"Users"},
+     *     summary="Toggle user confirmation status",
+     *     description="Confirm or unconfirm a user based on a flag, or toggle the current status if no flag is provided",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             @OA\Property(property="confirm", type="boolean", nullable=true, description="Optional flag to set user confirmation status")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="User confirmation status updated successfully",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="User confirmation status updated successfully."),
+     *             @OA\Property(property="data", ref="#/components/schemas/User"),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Bad request."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="User not found",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="User not found."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to update user confirmation status",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to update user confirmation status."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     )
+     * )
+     */
+    public function toggleConfirmation(Request $request, $id)
+    {
+        try {
+            $user = User::findOrFail($id);
+
+            if ($request->has('confirm')) {
+                $user->email_verified_at = $request->input('confirm') ? now() : null;
+            } else {
+                $user->email_verified_at = $user->email_verified_at ? null : now();
+            }
+
+            $user->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'User confirmation status updated successfully.',
+                'data' => $user,
+                'errors' => null
+            ], 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 404);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update user confirmation status.',
                 'data' => null,
                 'errors' => $e->getMessage()
             ], 500);

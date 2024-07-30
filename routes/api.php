@@ -52,6 +52,8 @@ Route::prefix('v1')->group(function () {
             Route::get('/{id}', [UserController::class, 'show'])->name('users.show');
             // Route::patch('/{id}', [UserController::class, 'update'])->name('users.update');
             Route::delete('/{id}', [UserController::class, 'destroy'])->name('users.destroy');
+            Route::patch('/{id}/toggle-active', [UserController::class, 'toggleActive']);
+            Route::patch('/{id}/toggle-confirmation', [UserController::class, 'toggleConfirmation']);
         });
         Route::prefix('users')->group(function () {
             Route::patch('/{id}', [UserController::class, 'update'])->name('users.update');
