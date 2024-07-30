@@ -454,7 +454,7 @@ class UserController extends Controller
      *     operationId="updateUser",
      *     tags={"Users"},
      *     summary="Update an existing user",
-     *     description="Updates an existing user and returns the updated data",
+     *     description="Updates an existing user and returns the updated data. If the email is changed, the email_verified_at field is set to null and a verification email is sent.",
      *     security={{"bearerAuth": {}}},
      *     @OA\Parameter(
      *         name="id",
@@ -566,8 +566,20 @@ class UserController extends Controller
                 ], 403);
             }
 
+            // Verifica se o e-mail foi alterado
+            $emailChanged = isset($validatedData['email']) && $validatedData['email'] !== $user->email;
+
             // Atualizar apenas os campos que foram validados
             $user->update($validatedData);
+
+            // Se o e-mail foi alterado, atualiza o campo email_verified_at e envia o e-mail de verificação
+            if ($emailChanged) {
+                $user->email_verified_at = null;
+                $user->save();
+
+                // Envia o e-mail de verificação
+                $user->sendEmailVerificationNotification();
+            }
 
             return response()->json([
                 'status' => 'success',
@@ -584,6 +596,7 @@ class UserController extends Controller
             ], 500);
         }
     }
+
 
 
     /**
