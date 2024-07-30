@@ -9,6 +9,7 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -368,6 +369,8 @@ class UserController extends Controller
                 'is_admin' => $isAdmin,
             ]);
 
+            $token = Str::random(60);
+            $user->email_verification_token = $token;
             $user->sendEmailVerificationNotification();
 
             return response()->json([
