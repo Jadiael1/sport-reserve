@@ -12,6 +12,87 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
 
+/**
+ * @OA\Schema(
+ *     schema="FieldPagination",
+ *     type="object",
+ *     @OA\Property(
+ *         property="current_page",
+ *         type="integer",
+ *         description="Current page number",
+ *         example=1
+ *     ),
+ *     @OA\Property(
+ *         property="data",
+ *         type="array",
+ *         @OA\Items(ref="#/components/schemas/Field")
+ *     ),
+ *     @OA\Property(
+ *         property="first_page_url",
+ *         type="string",
+ *         description="URL to the first page",
+ *         example="http://api-sport-reserve.juvhost.com/api/v1/fields?page=1"
+ *     ),
+ *     @OA\Property(
+ *         property="from",
+ *         type="integer",
+ *         description="First item number on this page",
+ *         example=1
+ *     ),
+ *     @OA\Property(
+ *         property="last_page",
+ *         type="integer",
+ *         description="Last page number",
+ *         example=10
+ *     ),
+ *     @OA\Property(
+ *         property="last_page_url",
+ *         type="string",
+ *         description="URL to the last page",
+ *         example="http://api-sport-reserve.juvhost.com/api/v1/fields?page=10"
+ *     ),
+ *     @OA\Property(
+ *         property="next_page_url",
+ *         type="string",
+ *         nullable=true,
+ *         description="URL to the next page",
+ *         example="http://api-sport-reserve.juvhost.com/api/v1/fields?page=2"
+ *     ),
+ *     @OA\Property(
+ *         property="path",
+ *         type="string",
+ *         description="Base path for pagination",
+ *         example="http://api-sport-reserve.juvhost.com/api/v1/fields"
+ *     ),
+ *     @OA\Property(
+ *         property="per_page",
+ *         type="integer",
+ *         description="Number of items per page",
+ *         example=15
+ *     ),
+ *     @OA\Property(
+ *         property="prev_page_url",
+ *         type="string",
+ *         nullable=true,
+ *         description="URL to the previous page",
+ *         example=null
+ *     ),
+ *     @OA\Property(
+ *         property="to",
+ *         type="integer",
+ *         description="Last item number on this page",
+ *         example=15
+ *     ),
+ *     @OA\Property(
+ *         property="total",
+ *         type="integer",
+ *         description="Total number of items available",
+ *         example=150
+ *     ),
+ * )
+ */
+
+
 class FieldController extends Controller
 {
     /**
@@ -23,11 +104,48 @@ class FieldController extends Controller
      *     operationId="getFieldsList",
      *     tags={"Fields"},
      *     summary="Get list of fields",
-     *     description="Returns list of fields",
+     *     description="Returns a paginated list of fields with optional sorting",
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         description="Number of fields to return per page",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="integer",
+     *             example=15
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         description="Field to sort by",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"id", "status"},
+     *             example="id"
+     *         )
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         description="Sort order",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"asc", "desc"},
+     *             example="desc"
+     *         )
+     *     ),
      *     @OA\Response(
      *         response=200,
      *         description="Successful operation",
-     *         @OA\JsonContent(type="array", @OA\Items(ref="#/components/schemas/Field"))
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Field successfully recovered."),
+     *             @OA\Property(property="data", ref="#/components/schemas/FieldPagination"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=500,
@@ -41,6 +159,7 @@ class FieldController extends Controller
      *     )
      * )
      */
+
     public function index(Request $request)
     {
         try {
@@ -51,18 +170,32 @@ class FieldController extends Controller
             }
             $accessToken = PersonalAccessToken::findToken($token);
             $user = null;
-            if($accessToken){
+            if ($accessToken) {
                 $user = $accessToken->tokenable;
             }
 
-            $per_page = $request->query('per_page', 15);
+
+            $validSortFields = ['id', 'status'];
+            $validSortOrders = ['asc', 'desc'];
+
+            $perPage = $request->query('per_page', 15);
+            $sortBy = $request->input('sort_by', 'status');
+            $sortOrder = $request->input('sort_order', 'desc');
+
+            if (!in_array($sortBy, $validSortFields)) {
+                $sortBy = 'id';
+            }
+
+            if (!in_array($sortOrder, $validSortOrders)) {
+                $sortOrder = 'desc';
+            }
 
             if ($user && $user->is_admin) {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
-                $fields = Field::with(['images'])->orderBy('id', 'desc')->paginate($per_page);
+                $fields = Field::with(['images'])->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")->orderBy($sortBy, $sortOrder)->paginate($perPage);
             } else {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
-                $fields = Field::with(['images'])->orderBy('id', 'desc')->where('status', '!=', 'inactive')->paginate($per_page);
+                $fields = Field::with(['images'])->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")->orderBy($sortBy, $sortOrder)->where('status', '!=', 'inactive')->paginate($perPage);
             }
 
 
@@ -78,7 +211,7 @@ class FieldController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Field successfully recovered.',
-                'data' => $fields->sortBy('status'),
+                'data' => $fields,
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
@@ -278,7 +411,7 @@ class FieldController extends Controller
             }
             $accessToken = PersonalAccessToken::findToken($token);
             $user = null;
-            if($accessToken){
+            if ($accessToken) {
                 $user = $accessToken->tokenable;
             }
 
