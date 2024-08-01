@@ -56,7 +56,7 @@ class FieldController extends Controller
 
             if ($user && $user->is_admin) {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
-                $fields = Field::with(['images'])->paginate();
+                $fields = Field::with(['images'])->orderBy('status', 'asc')->paginate();
             } else {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
                 $fields = Field::with(['images'])->where('status', '!=', 'inactive')->paginate();
