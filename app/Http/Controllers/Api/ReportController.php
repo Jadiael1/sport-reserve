@@ -153,6 +153,8 @@ class ReportController extends Controller
                 DB::raw('COUNT(*) as total_transactions')
             )
                 ->whereBetween('payment_date', [$startDate, $endDate])
+                ->where('status', '!=', 'CANCELED')
+                ->where('status', '!=', 'WAITING')
                 ->groupBy('date')
                 ->orderBy('date')
                 ->paginate(15);
