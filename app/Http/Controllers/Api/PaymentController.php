@@ -152,13 +152,20 @@ class PaymentController extends Controller
 
         if ($response->successful()) {
             $responseData = $response->json();
+            $paymentPbId =  $responseData['id'];
             $payLink = collect($responseData['links'])->firstWhere('rel', 'PAY')['href'] ?? null;
+            $selfUrl = collect($responseData['links'])->firstWhere('rel', 'SELF')['href'] ?? null;
+            $inactivateUrl = collect($responseData['links'])->firstWhere('rel', 'INACTIVATE')['href'] ?? null;
 
             Payment::create([
                 'reservation_id' => $reservation->id,
                 'amount' => $totalAmount / 100,
                 'status' => 'WAITING',
-                'url' => $payLink
+                'url' => $payLink,
+                'response' => json_encode($response->json()),
+                'payment_pb_id' => $paymentPbId,
+                'self_url' => $selfUrl,
+                'inactivate_url' => $inactivateUrl,
             ]);
 
 
@@ -377,7 +384,8 @@ class PaymentController extends Controller
                 $payment->update([
                     'amount' => $responseData['amount']['value'] / 100, // assuming the amount is in cents
                     'status' => $responseData['status'],
-                    'payment_date' => Carbon::parse($responseData['paid_at'])
+                    'payment_date' => Carbon::parse($responseData['paid_at']),
+                    'response_payment' => json_encode($responseData),
                 ]);
 
                 $reservation->status = $responseData['status'];
