@@ -306,11 +306,12 @@ class ReportController extends Controller
             $startDate = Carbon::parse($request->start_date);
             $endDate = Carbon::parse($request->end_date);
 
-            $occupancyData = Reservation::select('field_id', DB::raw('COUNT(*) as total_reservations'))
+            $occupancyData = Reservation::select('reservations.field_id', 'fields.name as field_name', DB::raw('COUNT(*) as total_reservations'))
+                ->join('fields', 'reservations.field_id', '=', 'fields.id')
                 ->whereBetween('start_time', [$startDate, $endDate])
-                ->where('status', '!=', 'CANCELED')
-                ->where('status', '!=', 'WAITING')
-                ->groupBy('field_id')
+                ->where('reservations.status', '!=', 'CANCELED')
+                ->where('reservations.status', '!=', 'WAITING')
+                ->groupBy('reservations.field_id', 'fields.name')
                 ->orderBy('total_reservations', 'desc')
                 ->paginate(15);
 
