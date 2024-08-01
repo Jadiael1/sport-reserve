@@ -268,7 +268,18 @@ class FieldController extends Controller
     {
         try {
             $field = null;
-            if (Auth::user() && Auth::user()->is_admin) {
+
+            $token = request()->header('Authorization');
+            if (str_starts_with($token, 'Bearer ')) {
+                $token = substr($token, 7);
+            }
+            $accessToken = PersonalAccessToken::findToken($token);
+            $user = null;
+            if($accessToken){
+                $user = $accessToken->tokenable;
+            }
+
+            if ($user && $user->is_admin) {
                 $field = Field::with(['images'])->findOrFail($id);
             } else {
                 $field = Field::with(['images'])->where('status', '!=', 'inactive')->findOrFail($id);
