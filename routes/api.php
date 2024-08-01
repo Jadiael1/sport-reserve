@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FieldAvailabilityController;
 use App\Http\Controllers\Api\FieldController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -74,11 +75,18 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum', 'admin'])->delete('/{id}', [FieldController::class, 'destroy'])->name('fields.destroy');
     });
 
-    Route::prefix('fieldAvailabilities')->group(function(){
+    Route::prefix('fieldAvailabilities')->group(function () {
         // Rotas para disponibilidades de campos
         Route::middleware(['auth:sanctum', 'admin'])->get('/', [FieldAvailabilityController::class, 'index'])->name('fieldAvailabilities.index');
         Route::middleware(['auth:sanctum', 'admin'])->post('/{fieldId}/availabilities', [FieldAvailabilityController::class, 'store'])->name('fieldAvailabilities.store');
         Route::middleware(['auth:sanctum', 'admin'])->patch('/{fieldId}/availabilities/{availabilityId}', [FieldAvailabilityController::class, 'update'])->name('fieldAvailabilities.update');
         Route::middleware(['auth:sanctum', 'admin'])->delete('/{fieldId}/availabilities/{availabilityId}', [FieldAvailabilityController::class, 'destroy'])->name('fieldAvailabilities.delete');
+    });
+
+    Route::middleware(['auth:sanctum', 'verified', 'admin'])->prefix('reports')->group(function () {
+        Route::get('/performance', [ReportController::class, 'performance'])->name('reports.performance');
+        Route::get('/financial', [ReportController::class, 'financial'])->name('reports.financial');
+        Route::get('/users', [ReportController::class, 'users'])->name('reports.users');
+        Route::get('/occupancy', [ReportController::class, 'occupancy'])->name('reports.occupancy');
     });
 });
