@@ -7,6 +7,7 @@ use App\Http\Requests\StoreFieldRequest;
 use App\Http\Requests\UpdateFieldRequest;
 use App\Models\Field;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -40,7 +41,7 @@ class FieldController extends Controller
      *     )
      * )
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
             $fields = null;
@@ -54,12 +55,14 @@ class FieldController extends Controller
                 $user = $accessToken->tokenable;
             }
 
+            $per_page = $request->query('per_page', 15);
+
             if ($user && $user->is_admin) {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
-                $fields = Field::with(['images'])->orderBy('status', 'asc')->paginate();
+                $fields = Field::with(['images'])->orderBy('id', 'desc')->paginate($per_page);
             } else {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
-                $fields = Field::with(['images'])->where('status', '!=', 'inactive')->paginate();
+                $fields = Field::with(['images'])->orderBy('id', 'desc')->where('status', '!=', 'inactive')->paginate($per_page);
             }
 
 
@@ -75,7 +78,7 @@ class FieldController extends Controller
             return response()->json([
                 'status' => 'success',
                 'message' => 'Field successfully recovered.',
-                'data' => $fields,
+                'data' => $fields->sortBy('status'),
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
