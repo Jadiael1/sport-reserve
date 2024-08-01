@@ -74,6 +74,8 @@ class ReportController extends Controller
 
             $performanceData = Reservation::select(DB::raw('DATE(start_time) as date'), DB::raw('COUNT(*) as total_reservations'))
                 ->whereBetween('start_time', [$startDate, $endDate])
+                ->where('status', '!=', 'CANCELED')
+                ->where('status', '!=', 'WAITING')
                 ->groupBy('date')
                 ->orderBy('date')
                 ->paginate(15);
@@ -230,6 +232,7 @@ class ReportController extends Controller
 
             $userData = User::select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as total_users'))
                 ->whereBetween('created_at', [$startDate, $endDate])
+                ->where('active', '!=', 0)
                 ->groupBy('date')
                 ->orderBy('date')
                 ->paginate(15);
@@ -305,6 +308,8 @@ class ReportController extends Controller
 
             $occupancyData = Reservation::select('field_id', DB::raw('COUNT(*) as total_reservations'))
                 ->whereBetween('start_time', [$startDate, $endDate])
+                ->where('status', '!=', 'CANCELED')
+                ->where('status', '!=', 'WAITING')
                 ->groupBy('field_id')
                 ->orderBy('total_reservations', 'desc')
                 ->paginate(15);
