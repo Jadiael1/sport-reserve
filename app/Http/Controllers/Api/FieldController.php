@@ -3,16 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreFieldAvailabilityRequest;
 use App\Http\Requests\StoreFieldRequest;
-use App\Http\Requests\UpdateFieldAvailabilityRequest;
 use App\Http\Requests\UpdateFieldRequest;
 use App\Models\Field;
-use App\Models\FieldAvailability;
 use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class FieldController extends Controller
 {
@@ -47,7 +44,17 @@ class FieldController extends Controller
     {
         try {
             $fields = null;
-            if (Auth::user() && Auth::user()->is_admin) {
+            $token = request()->header('Authorization');
+            if (str_starts_with($token, 'Bearer ')) {
+                $token = substr($token, 7);
+            }
+            $accessToken = PersonalAccessToken::findToken($token);
+            $user = null;
+            if($accessToken){
+                $user = $accessToken->tokenable;
+            }
+
+            if ($user && $user->is_admin) {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
                 $fields = Field::with(['images'])->paginate();
             } else {
