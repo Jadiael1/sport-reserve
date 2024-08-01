@@ -70,8 +70,15 @@ class Payment extends Model
         'amount',
         'status',
         'payment_date',
-        'url'
+        'url',
+        'response',
+        'payment_pb_id',
+        'self_url',
+        'inactivate_url',
+        'response_payment',
     ];
+
+    protected $hidden = ['response', 'payment_pb_id', 'self_url', 'inactivate_url', 'response_payment'];
 
     public function reservation()
     {

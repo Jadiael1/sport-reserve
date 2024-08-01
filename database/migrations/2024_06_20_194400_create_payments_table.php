@@ -18,6 +18,11 @@ return new class extends Migration
             $table->string('status')->default('WAITING');
             $table->timestamp('payment_date');
             $table->string('url');
+            $table->longText('response')->nullable();
+            $table->longText('response_payment')->nullable();
+            $table->string('payment_pb_id')->comment('Pagbank payment identification');
+            $table->string('self_url');
+            $table->string('inactivate_url');
             $table->timestamps();
             $table->foreign('reservation_id')->references('id')->on('reservations')->onDelete('cascade');
         });
