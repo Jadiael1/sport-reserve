@@ -3,21 +3,172 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdatePaymentRequest;
 use App\Models\Field;
 use App\Models\Reservation;
 use App\Models\Payment;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentController extends Controller
 {
     /**
+     * Display a listing of the resource.
+     */
+    /**
+     * @OA\Get(
+     *     path="/api/v1/payments",
+     *     operationId="getPaymentsList",
+     *     tags={"Payments"},
+     *     summary="Get list of payments",
+     *     description="Returns list of payments",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="per_page",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="integer", default=15),
+     *         description="Number of payments per page"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_by",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(
+     *             type="string",
+     *             enum={"reservation_id", "amount", "status", "payment_date", "url", "response", "payment_pb_id", "self_url", "inactivate_url", "response_payment", "created_at", "updated_at"}
+     *         ),
+     *         description="Field to sort by"
+     *     ),
+     *     @OA\Parameter(
+     *         name="sort_order",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"asc", "desc"}),
+     *         description="Sort order: asc or desc"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Payments successfully recovered."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Payment")),
+     *                 @OA\Property(property="first_page_url", type="string"),
+     *                 @OA\Property(property="from", type="integer"),
+     *                 @OA\Property(property="last_page", type="integer"),
+     *                 @OA\Property(property="last_page_url", type="string"),
+     *                 @OA\Property(property="next_page_url", type="string"),
+     *                 @OA\Property(property="path", type="string"),
+     *                 @OA\Property(property="per_page", type="integer"),
+     *                 @OA\Property(property="prev_page_url", type="string"),
+     *                 @OA\Property(property="to", type="integer"),
+     *                 @OA\Property(property="total", type="integer")
+     *             ),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid sort field or sort order",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Invalid sort field or sort order."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to retrieve payments.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to retrieve payments."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
+     *     )
+     * )
+     */
+    public function index(Request $request)
+    {
+        try {
+            $perPage = $request->query('per_page', 15);
+            $sortBy = $request->query('sort_by', 'created_at');
+            $sortOrder = $request->query('sort_order', 'desc');
+
+            $validSortFields = [
+                'reservation_id',
+                'amount',
+                'status',
+                'payment_date',
+                'url',
+                'response',
+                'payment_pb_id',
+                'self_url',
+                'inactivate_url',
+                'response_payment',
+                'created_at',
+                'updated_at'
+            ];
+
+            if (!in_array($sortBy, $validSortFields)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid sort field.',
+                    'data' => null,
+                    'errors' => null
+                ], 400);
+            }
+
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid sort order.',
+                    'data' => null,
+                    'errors' => null
+                ], 400);
+            }
+
+            $payments = Payment::with(['reservation.field'])->paginate($perPage);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payments successfully recovered.',
+                'data' => $payments,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve payments.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    /**
      * @OA\Post(
      *     path="/api/v1/payments/reservations/{id}/pay",
-     *     operationId="initiatePayment",
+     *     operationId="storePayment",
      *     tags={"Payments"},
      *     summary="Initiate payment for a reservation",
      *     description="Creates a payment request for a reservation and returns the payment URL",
@@ -70,7 +221,7 @@ class PaymentController extends Controller
      *     )
      * )
      */
-    public function initiatePayment(Request $request, $id)
+    public function store($id)
     {
         $reservation = Reservation::findOrFail($id);
         if ($reservation->status === 'PAID') {
@@ -168,7 +319,6 @@ class PaymentController extends Controller
                 'inactivate_url' => $inactivateUrl,
             ]);
 
-
             return response()->json([
                 'status' => 'success',
                 'message' => 'Payment link generated successfully.',
@@ -182,6 +332,227 @@ class PaymentController extends Controller
                 'data' => null,
                 'errors' => $response->json()
             ], 400);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    /**
+     * @OA\Get(
+     *     path="/api/v1/payments/{id}",
+     *     operationId="getPaymentById",
+     *     tags={"Payments"},
+     *     summary="Get payment by ID",
+     *     description="Returns a specific payment",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID of the payment"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment successfully recovered.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Payment successfully recovered."),
+     *             @OA\Property(property="data", ref="#/components/schemas/Payment"),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Payment not found.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Payment not found."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
+     *     )
+     * )
+     */
+    public function show(string $id)
+    {
+        try {
+            $payments = Payment::with(['reservation.field'])->findOrFail($id);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment successfully recovered.',
+                'data' => $payments,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Payment not found.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 404);
+        }
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    /**
+     * @OA\Patch(
+     *     path="/api/v1/payments/{id}",
+     *     operationId="updatePayment",
+     *     tags={"Payments"},
+     *     summary="Update payment",
+     *     description="Updates a specific payment's details",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID of the payment to update"
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="amount", type="number", example=200.50, description="Amount of the payment"),
+     *             @OA\Property(property="status", type="string", example="PAID", description="Status of the payment"),
+     *             @OA\Property(property="payment_date", type="string", format="date-time", example="2024-07-01T18:14:17.702Z", description="Date of the payment")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment updated successfully.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Payment updated successfully."),
+     *             @OA\Property(property="data", ref="#/components/schemas/Payment"),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid data provided.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Invalid data provided."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Payment not found.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Payment not found."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     )
+     * )
+     */
+
+    public function update(UpdatePaymentRequest $request, string $id)
+    {
+        $validatedData = $request->validated();
+        try {
+            $payment = Payment::findOrFail($id);
+            $payment->update($validatedData);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment updated successfully.',
+                'data' => $payment,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update payment.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    /**
+     * @OA\Delete(
+     *     path="/api/v1/payments/{id}",
+     *     operationId="deletePayment",
+     *     tags={"Payments"},
+     *     summary="Delete payment",
+     *     description="Deletes a specific payment",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID of the payment to delete"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment successfully deleted.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Payment successfully deleted."),
+     *             @OA\Property(property="data", ref="#/components/schemas/Payment"),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Payment not found.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Payment not found."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to delete payment.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to delete payment."),
+     *             @OA\Property(property="data", type="null"),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
+     *     )
+     * )
+     */
+    public function destroy(string $id)
+    {
+        try {
+            $payment = Payment::findOrFail($id);
+            $paymentToDelete = $payment;
+            $payment->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment successfully deleted.',
+                'data' => $paymentToDelete,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete payment.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
         }
     }
 
