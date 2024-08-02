@@ -223,115 +223,141 @@ class PaymentController extends Controller
      */
     public function store($id)
     {
-        $reservation = Reservation::findOrFail($id);
-        if ($reservation->status === 'PAID') {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Reservation already paid',
-                'data' => null,
-                'errors' => null
-            ], 422);
-        }
+        try {
+            $reservation = Reservation::findOrFail($id);
+            if ($reservation->status === 'PAID') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Reservation already paid',
+                    'data' => null,
+                    'errors' => null
+                ], 422);
+            }
 
-        $payment = $reservation->payments()->where('reservation_id', $id)->where('status', 'WAITING')->first();
-        if ($payment) {
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Payment link generated successfully..',
-                'data' => array('url' => $payment->url),
-                'errors' => null
-            ], 200);
-        }
+            $payment = $reservation->payments()->where('reservation_id', $id)->where('status', 'WAITING')->first();
+            if ($payment) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Payment link generated successfully..',
+                    'data' => array('url' => $payment->url),
+                    'errors' => null
+                ], 200);
+            }
 
-        $user = $reservation->user;
-        $field = Field::findOrFail($reservation->field_id);
+            $user = $reservation->user;
+            $field = Field::findOrFail($reservation->field_id);
 
-        $startTime = Carbon::parse($reservation->start_time);
-        $endTime = Carbon::parse($reservation->end_time);
+            $startTime = Carbon::parse($reservation->start_time);
+            $endTime = Carbon::parse($reservation->end_time);
 
-        $durationInMinutes = $startTime->diffInMinutes($endTime);
-        $pricePerMinute = $reservation->field->hourly_rate / 60;
-        $totalAmount = round($durationInMinutes * $pricePerMinute * 100, 2);
+            $durationInMinutes = $startTime->diffInMinutes($endTime);
+            $pricePerMinute = $reservation->field->hourly_rate / 60;
+            $totalAmount = round($durationInMinutes * $pricePerMinute * 100, 2);
 
-        $body = array(
-            'customer' => array(
-                'email' => $user->email,
-                'tax_id' => $user->cpf
-            ),
-            'reference_id' => "{$reservation->field_id}-{$reservation->id}-{$user->id}",
-            "customer_modifiable" => true,
-            'items' => array(
-                array(
-                    'reference_id' => "{$reservation->field_id}-{$reservation->id}-{$user->id}",
-                    'name' => "Reserva {$field->name}",
-                    'description' => "Reserva de uma quadra esportiva",
-                    'quantity' => 1,
-                    'unit_amount' => $totalAmount,
+            $body = array(
+                'customer' => array(
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'tax_id' => $user->cpf,
+                    'phone' => array(
+                        'country' => '55',
+                        'area' => substr($user->phone, 0, 2),
+                        'number' => substr($user->phone, 2),
+                    )
                 ),
-            ),
-            'payment_methods' => array(
-                array('type' => "PIX"),
-                array('type' => "debit_card"),
-                array('type' => "credit_card"),
-            ),
-            "payment_methods_configs" => array(
-                array(
-                    "type" => "credit_card",
-                    "config_options" => array(
-                        array(
-                            "option" => "installments_limit",
-                            "value" => "1"
+                'reference_id' => "{$reservation->field_id}-{$reservation->id}-{$user->id}",
+                'customer_modifiable' => true,
+                'items' => array(
+                    array(
+                        'reference_id' => "{$reservation->field_id}-{$reservation->id}-{$user->id}",
+                        'name' => "Reserva {ucfirst($field->name)}",
+                        'description' => 'Reserva de uma quadra esportiva',
+                        'quantity' => 1,
+                        'unit_amount' => $totalAmount,
+                    ),
+                ),
+                'payment_methods' => array(
+                    array('type' => 'PIX'),
+                    array('type' => 'debit_card'),
+                    array('type' => 'credit_card'),
+                ),
+                'payment_methods_configs' => array(
+                    array(
+                        'type' => 'credit_card',
+                        'config_options' => array(
+                            array(
+                                'option' => 'installments_limit',
+                                'value' => '1'
+                            )
                         )
                     )
-                )
-            ),
-            'soft_descriptor' => 'sport-reserve',
-        );
-        $appUrl = env('APP_URL');
-        if ($appUrl && strpos($appUrl, 'localhost') === false) {
-            $body['redirect_url'] = env('SAP_URL');
-            $body['return_url'] = env('SAP_URL');
-            $body['payment_notification_urls'] = array($appUrl . "/api/v1/payments/notify");
-        }
-        $url = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.baseUrlSandBox') . "/checkouts" : config('pagseguro.baseUrl') . "/checkouts";
-        $token = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.tokenSandBox') : config('pagseguro.token');
-        $response = Http::withHeaders([
-            'Authorization' => "Bearer " . $token,
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ])->post($url, $body);
+                ),
+                'soft_descriptor' => "SR_{ucfirst($field->name)}",
+            );
+            $appUrl = env('APP_URL');
+            if ($appUrl && strpos($appUrl, 'localhost') === false) {
+                $body['redirect_url'] = env('SAP_URL');
+                $body['return_url'] = env('SAP_URL');
+                $body['payment_notification_urls'] = array($appUrl . "/api/v1/payments/notify");
+            }
+            $url = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.baseUrlSandBox') . "/checkouts" : config('pagseguro.baseUrl') . "/checkouts";
+            $token = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.tokenSandBox') : config('pagseguro.token');
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer " . $token,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ])->post($url, $body);
 
-        if ($response->successful()) {
-            $responseData = $response->json();
-            $checkoutId =  $responseData['id'];
-            $payLink = collect($responseData['links'])->firstWhere('rel', 'PAY')['href'] ?? null;
-            $selfUrl = collect($responseData['links'])->firstWhere('rel', 'SELF')['href'] ?? null;
-            $inactivateUrl = collect($responseData['links'])->firstWhere('rel', 'INACTIVATE')['href'] ?? null;
+            if ($response->successful()) {
+                $responseData = $response->json();
+                Storage::append('pagseguro_success_checkout.log', json_encode($responseData));
+                $checkoutId =  $responseData['id'];
+                $payLink = collect($responseData['links'])->firstWhere('rel', 'PAY')['href'] ?? null;
+                $selfUrl = collect($responseData['links'])->firstWhere('rel', 'SELF')['href'] ?? null;
+                $inactivateUrl = collect($responseData['links'])->firstWhere('rel', 'INACTIVATE')['href'] ?? null;
 
-            Payment::create([
-                'reservation_id' => $reservation->id,
-                'amount' => $totalAmount / 100,
-                'status' => 'WAITING',
-                'url' => $payLink,
-                'response' => json_encode($response->json()),
-                'checkout_id' => $checkoutId,
-                'self_url' => $selfUrl,
-                'inactivate_url' => $inactivateUrl,
-            ]);
+                Payment::create([
+                    'reservation_id' => $reservation->id,
+                    'amount' => $totalAmount / 100,
+                    'status' => 'WAITING',
+                    'url' => $payLink,
+                    'response' => json_encode($response->json()),
+                    'checkout_id' => $checkoutId,
+                    'self_url' => $selfUrl,
+                    'inactivate_url' => $inactivateUrl,
+                ]);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Payment link generated successfully.',
-                'data' => array('url' => $payLink),
-                'errors' => null
-            ], 200);
-        } else {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Payment link generated successfully.',
+                    'data' => array('url' => $payLink),
+                    'errors' => null
+                ], 200);
+            } else {
+                Storage::append('pagseguro_fail_checkout.json', json_encode(array(
+                    'totalAmount' => $totalAmount,
+                    'url' => $url,
+                    'token' => $token,
+                    'body' => $body,
+                    'response_json' => $response->json(),
+                )));
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to initiate payment',
+                    'data' => null,
+                    'errors' => $response->json()
+                ], 400);
+            }
+        } catch (Exception $e) {
+            Storage::append('pagseguro_exception_checkout.json', json_encode(array(
+                'getMessage' => $e->getMessage()
+            )));
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to initiate payment',
+                'message' => 'Internal Server Error.',
                 'data' => null,
-                'errors' => $response->json()
-            ], 400);
+                'errors' => $e->getMessage()
+            ], 500);
         }
     }
 
