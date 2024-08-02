@@ -8,90 +8,8 @@ use App\Http\Requests\UpdateFieldRequest;
 use App\Models\Field;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\PersonalAccessToken;
-
-/**
- * @OA\Schema(
- *     schema="FieldPagination",
- *     type="object",
- *     @OA\Property(
- *         property="current_page",
- *         type="integer",
- *         description="Current page number",
- *         example=1
- *     ),
- *     @OA\Property(
- *         property="data",
- *         type="array",
- *         @OA\Items(ref="#/components/schemas/Field")
- *     ),
- *     @OA\Property(
- *         property="first_page_url",
- *         type="string",
- *         description="URL to the first page",
- *         example="http://api-sport-reserve.juvhost.com/api/v1/fields?page=1"
- *     ),
- *     @OA\Property(
- *         property="from",
- *         type="integer",
- *         description="First item number on this page",
- *         example=1
- *     ),
- *     @OA\Property(
- *         property="last_page",
- *         type="integer",
- *         description="Last page number",
- *         example=10
- *     ),
- *     @OA\Property(
- *         property="last_page_url",
- *         type="string",
- *         description="URL to the last page",
- *         example="http://api-sport-reserve.juvhost.com/api/v1/fields?page=10"
- *     ),
- *     @OA\Property(
- *         property="next_page_url",
- *         type="string",
- *         nullable=true,
- *         description="URL to the next page",
- *         example="http://api-sport-reserve.juvhost.com/api/v1/fields?page=2"
- *     ),
- *     @OA\Property(
- *         property="path",
- *         type="string",
- *         description="Base path for pagination",
- *         example="http://api-sport-reserve.juvhost.com/api/v1/fields"
- *     ),
- *     @OA\Property(
- *         property="per_page",
- *         type="integer",
- *         description="Number of items per page",
- *         example=15
- *     ),
- *     @OA\Property(
- *         property="prev_page_url",
- *         type="string",
- *         nullable=true,
- *         description="URL to the previous page",
- *         example=null
- *     ),
- *     @OA\Property(
- *         property="to",
- *         type="integer",
- *         description="Last item number on this page",
- *         example=15
- *     ),
- *     @OA\Property(
- *         property="total",
- *         type="integer",
- *         description="Total number of items available",
- *         example=150
- *     ),
- * )
- */
-
 
 class FieldController extends Controller
 {
@@ -143,8 +61,21 @@ class FieldController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="status", type="string", example="success"),
      *             @OA\Property(property="message", type="string", example="Field successfully recovered."),
-     *             @OA\Property(property="data", ref="#/components/schemas/FieldPagination"),
-     *             @OA\Property(property="errors", type="null")
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="current_page", type="integer"),
+     *                 @OA\Property(property="data", type="array", @OA\Items(ref="#/components/schemas/Field")),
+     *                 @OA\Property(property="first_page_url", type="string"),
+     *                 @OA\Property(property="from", type="integer"),
+     *                 @OA\Property(property="last_page", type="integer"),
+     *                 @OA\Property(property="last_page_url", type="string"),
+     *                 @OA\Property(property="next_page_url", type="string"),
+     *                 @OA\Property(property="path", type="string"),
+     *                 @OA\Property(property="per_page", type="integer"),
+     *                 @OA\Property(property="prev_page_url", type="string"),
+     *                 @OA\Property(property="to", type="integer"),
+     *                 @OA\Property(property="total", type="integer")
+     *             ),
+     *             @OA\Property(property="errors", type="object", nullable=true)
      *         )
      *     ),
      *     @OA\Response(
@@ -192,10 +123,17 @@ class FieldController extends Controller
 
             if ($user && $user->is_admin) {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
-                $fields = Field::with(['images'])->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")->orderBy($sortBy, $sortOrder)->paginate($perPage);
+                $fields = Field::with(['images'])
+                    ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+                    ->orderBy($sortBy, $sortOrder)
+                    ->paginate($perPage);
             } else {
                 /** @var \Illuminate\Pagination\LengthAwarePaginator $fields */
-                $fields = Field::with(['images'])->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")->orderBy($sortBy, $sortOrder)->where('status', '!=', 'inactive')->paginate($perPage);
+                $fields = Field::with(['images'])
+                    ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
+                    ->orderBy($sortBy, $sortOrder)
+                    ->where('status', '!=', 'inactive')
+                    ->paginate($perPage);
             }
 
 
