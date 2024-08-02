@@ -921,6 +921,10 @@ class PaymentController extends Controller
                     'status' => $toggleAction === 'activate' ? 'WAITING' : 'INACTIVE'
                 ]);
 
+                $payment->reservation->update([
+                    'status' => $toggleAction === 'activate' ? 'WAITING' : 'CANCELED'
+                ]);
+
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Checkout status updated successfully.',
