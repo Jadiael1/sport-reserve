@@ -40,7 +40,7 @@ class PaymentController extends Controller
      *         required=false,
      *         @OA\Schema(
      *             type="string",
-     *             enum={"reservation_id", "amount", "status", "payment_date", "url", "response", "payment_pb_id", "self_url", "inactivate_url", "response_payment", "created_at", "updated_at"}
+     *             enum={"reservation_id", "amount", "status", "payment_date", "url", "response", "checkout_id", "self_url", "inactivate_url", "response_payment", "created_at", "updated_at"}
      *         ),
      *         description="Field to sort by"
      *     ),
@@ -110,7 +110,7 @@ class PaymentController extends Controller
                 'payment_date',
                 'url',
                 'response',
-                'payment_pb_id',
+                'checkout_id',
                 'self_url',
                 'inactivate_url',
                 'response_payment',
@@ -303,7 +303,7 @@ class PaymentController extends Controller
 
         if ($response->successful()) {
             $responseData = $response->json();
-            $paymentPbId =  $responseData['id'];
+            $checkoutId =  $responseData['id'];
             $payLink = collect($responseData['links'])->firstWhere('rel', 'PAY')['href'] ?? null;
             $selfUrl = collect($responseData['links'])->firstWhere('rel', 'SELF')['href'] ?? null;
             $inactivateUrl = collect($responseData['links'])->firstWhere('rel', 'INACTIVATE')['href'] ?? null;
@@ -314,7 +314,7 @@ class PaymentController extends Controller
                 'status' => 'WAITING',
                 'url' => $payLink,
                 'response' => json_encode($response->json()),
-                'payment_pb_id' => $paymentPbId,
+                'checkout_id' => $checkoutId,
                 'self_url' => $selfUrl,
                 'inactivate_url' => $inactivateUrl,
             ]);
@@ -784,5 +784,135 @@ class PaymentController extends Controller
             'data' => null,
             'errors' => array('error' => 'Payment status is not PAID')
         ], 400);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/payments/checkouts/{checkout_id}/toggle",
+     *     operationId="toggleCheckoutStatus",
+     *     tags={"Payments"},
+     *     summary="Toggle the status of a checkout",
+     *     description="Activates or inactivates a checkout based on the provided flag or toggles its current state",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="checkout_id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="string"),
+     *         description="ID of the checkout"
+     *     ),
+     *     @OA\Parameter(
+     *         name="action",
+     *         in="query",
+     *         required=false,
+     *         @OA\Schema(type="string", enum={"activate", "inactivate"}),
+     *         description="Action to perform: activate or inactivate"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Checkout status updated successfully.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Checkout status updated successfully."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="checkout_id", type="string"),
+     *                 @OA\Property(property="current_status", type="string")
+     *             ),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid action provided or reservation has already started.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Invalid action provided or reservation has already started."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Checkout not found.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Checkout not found."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     )
+     * )
+     */
+    public function toggleCheckoutStatus(Request $request, string $checkout_id)
+    {
+        try {
+            $action = $request->query('action');
+
+            if (!in_array($action, ['activate', 'inactivate', null])) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid action provided.',
+                    'data' => null,
+                    'errors' => null
+                ], 400);
+            }
+
+            $now = Carbon::now('America/Recife');
+            $payment = Payment::with(['reservation'])->where('checkout_id', $checkout_id)->firstOrFail();
+            $currentStatus = $payment->status;
+
+            if ($payment->reservation->start_time <= $now) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot change status for a reservation that has already started.',
+                    'data' => null,
+                    'errors' => null
+                ], 400);
+            }
+
+            // Determine the toggle action if not explicitly provided
+            $toggleAction = $action ?? ($currentStatus === 'WAITING' ? 'inactivate' : 'activate');
+            $toggleUrl = $toggleAction === 'activate'
+                ? $payment->self_url . '/activate'
+                : $payment->inactivate_url;
+
+            $token = config('pagseguro.environment') === 'sandbox' ? config('pagseguro.tokenSandBox') : config('pagseguro.token');
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer " . $token,
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            ])->post($toggleUrl);
+
+            if ($response->successful()) {
+                // Update the payment status based on the toggle action
+                $payment->update([
+                    'status' => $toggleAction === 'activate' ? 'WAITING' : 'INACTIVE'
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Checkout status updated successfully.',
+                    'data' => [
+                        'checkout_id' => $checkout_id,
+                        'current_status' => $payment->status
+                    ],
+                    'errors' => null
+                ], 200);
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update checkout status.',
+                'data' => null,
+                'errors' => $response->json()
+            ], 400);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Checkout not found.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 404);
+        }
     }
 }
