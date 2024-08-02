@@ -1006,10 +1006,10 @@ class PaymentController extends Controller
      *     )
      * )
      */
-    public function refundPayment(string $id)
+    public function refundPayment(string $charge_id)
     {
         try {
-            $payment = Payment::findOrFail($id);
+            $payment = Payment::where('charge_id', $charge_id)->firstOrFail();
 
             if ($payment->status !== 'PAID') {
                 return response()->json([
