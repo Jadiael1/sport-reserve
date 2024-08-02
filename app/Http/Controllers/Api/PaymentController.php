@@ -690,6 +690,13 @@ class PaymentController extends Controller
      */
     public function paymentNotification(Request $request)
     {
+        Storage::append('pagseguro_notifications.log', json_encode($request->all()));
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Payment notification processed successfully.',
+            'data' => null,
+            'errors' => null
+        ], 200);
         $data = $request->all();
 
         if (!isset($data['charges']) || !is_array($data['charges'])) {
