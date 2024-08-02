@@ -779,17 +779,16 @@ class PaymentController extends Controller
             }
 
             if ($responseData['status'] == 'PAID') {
+                $newRequest = new Request();
+                $this->toggleCheckoutStatus($newRequest, $payment->checkout_id);
                 $payment->update([
                     'amount' => $responseData['amount']['value'] / 100, // assuming the amount is in cents
                     'status' => $responseData['status'],
                     'payment_date' => Carbon::parse($responseData['paid_at']),
                     'response_payment' => json_encode($responseData),
                 ]);
-
                 $reservation->status = $responseData['status'];
                 $reservation->save();
-                $newRequest = new Request();
-                $this->toggleCheckoutStatus($newRequest, $responseData['id']);
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Payment notification processed successfully.',
