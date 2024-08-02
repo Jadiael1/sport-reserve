@@ -270,7 +270,7 @@ class PaymentController extends Controller
                 'items' => array(
                     array(
                         'reference_id' => "{$reservation->field_id}-{$reservation->id}-{$user->id}",
-                        'name' => 'Reserva ' . ucfirst(str_replace(' ', '_', $field->name)),
+                        'name' => 'Reserva ' . ucfirst($field->name),
                         'description' => 'Reserva de uma quadra esportiva',
                         'quantity' => 1,
                         'unit_amount' => $totalAmount,
