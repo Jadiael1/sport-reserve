@@ -136,7 +136,7 @@ class PaymentController extends Controller
                 ], 400);
             }
 
-            $payments = Payment::with(['reservation.field'])->paginate($perPage);
+            $payments = Payment::with(['reservation.field'])->orderBy($sortBy, $sortOrder)->paginate($perPage);
 
             return response()->json([
                 'status' => 'success',
