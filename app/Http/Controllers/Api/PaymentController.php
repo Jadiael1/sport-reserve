@@ -310,7 +310,7 @@ class PaymentController extends Controller
 
             if ($response->successful()) {
                 $responseData = $response->json();
-                Storage::append('pagseguro_success_checkout.log', json_encode($responseData));
+                Storage::append('pagseguro_success_checkout.json', json_encode($responseData));
                 $checkoutId =  $responseData['id'];
                 $payLink = collect($responseData['links'])->firstWhere('rel', 'PAY')['href'] ?? null;
                 $selfUrl = collect($responseData['links'])->firstWhere('rel', 'SELF')['href'] ?? null;
@@ -716,13 +716,7 @@ class PaymentController extends Controller
      */
     public function paymentNotification(Request $request)
     {
-        Storage::append('pagseguro_notifications.log', json_encode($request->all()));
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Payment notification processed successfully.',
-            'data' => null,
-            'errors' => null
-        ], 200);
+        Storage::append('pagseguro_notifications.json', json_encode($request->all()));
         $data = $request->all();
 
         if (!isset($data['charges']) || !is_array($data['charges'])) {
