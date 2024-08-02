@@ -788,7 +788,8 @@ class PaymentController extends Controller
 
                 $reservation->status = $responseData['status'];
                 $reservation->save();
-
+                $newRequest = new Request();
+                $this->toggleCheckoutStatus($newRequest, $responseData['id']);
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Payment notification processed successfully.',
