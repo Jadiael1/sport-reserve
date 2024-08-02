@@ -73,6 +73,7 @@ class Payment extends Model
         'url',
         'response',
         'checkout_id',
+        'charge_id',
         'self_url',
         'inactivate_url',
         'response_payment',

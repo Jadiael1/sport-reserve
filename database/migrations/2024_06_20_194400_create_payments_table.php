@@ -20,7 +20,8 @@ return new class extends Migration
             $table->string('url');
             $table->longText('response')->nullable();
             $table->longText('response_payment')->nullable();
-            $table->string('checkout_id')->comment('Pagbank payment identification');
+            $table->string('checkout_id')->comment('Pagbank checkout payment identification');
+            $table->string('charge_id')->comment('Pagbank charge payment identification');
             $table->string('self_url');
             $table->string('inactivate_url');
             $table->timestamps();

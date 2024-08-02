@@ -784,6 +784,7 @@ class PaymentController extends Controller
                 $payment->update([
                     'amount' => $responseData['amount']['value'] / 100, // assuming the amount is in cents
                     'status' => $responseData['status'],
+                    'charge_id' => $responseData['id'],
                     'payment_date' => Carbon::parse($responseData['paid_at']),
                     'response_payment' => json_encode($responseData),
                 ]);
