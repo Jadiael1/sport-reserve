@@ -716,10 +716,10 @@ class PaymentController extends Controller
      */
     public function paymentNotification(Request $request)
     {
-        Storage::append('pagseguro_notifications.json', json_encode($request->all()));
         $data = $request->all();
 
         if (!isset($data['charges']) || !is_array($data['charges'])) {
+            Storage::append('pagseguro_notifications.json', json_encode($request->all()));
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid notification data.',
@@ -730,6 +730,7 @@ class PaymentController extends Controller
 
         $charge = $data['charges'][0];
         if (!isset($charge['id'])) {
+            Storage::append('pagseguro_notifications_id.json', json_encode($request->all()));
             return response()->json([
                 'status' => 'error',
                 'message' => 'Invalid notification data.',
@@ -749,6 +750,7 @@ class PaymentController extends Controller
             $responseData = $response->json();
 
             if (!isset($responseData['reference_id'], $responseData['status'], $responseData['paid_at'])) {
+                Storage::append('pagseguro_notifications_reference_id.json', json_encode($request->all()));
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Invalid notification data.',
@@ -760,6 +762,7 @@ class PaymentController extends Controller
             $parts = explode('-', $responseData['reference_id']);
             $reservation = Reservation::where('id', $parts[1])->first();
             if (!$reservation || count($parts) !== 3) {
+                Storage::append('pagseguro_notifications_parts.json', json_encode($request->all()));
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Reservation not found.',
@@ -770,6 +773,7 @@ class PaymentController extends Controller
 
             $payment = $reservation->payments()->where('reservation_id', $reservation->id)->where('status', 'WAITING')->first();
             if (!$payment) {
+                Storage::append('pagseguro_notifications_payment.json', json_encode($request->all()));
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Payment not found.',
@@ -805,7 +809,7 @@ class PaymentController extends Controller
                 'errors' => $response->json()
             ], 404);
         }
-
+        Storage::append('pagseguro_notifications_error.json', json_encode($request->all()));
         return response()->json([
             'status' => 'error',
             'message' => 'Payment not completed.',
