@@ -943,4 +943,135 @@ class PaymentController extends Controller
             ], 404);
         }
     }
+
+
+
+    /**
+     * @OA\Post(
+     *     path="/api/v1/payments/{id}/refund",
+     *     operationId="refundPayment",
+     *     tags={"Payments"},
+     *     summary="Refund a payment",
+     *     description="Processes a refund for a specific payment",
+     *     security={{"bearerAuth": {}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer"),
+     *         description="ID of the payment to refund"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Payment successfully refunded.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Payment successfully refunded."),
+     *             @OA\Property(property="data", type="object",
+     *                 @OA\Property(property="payment_id", type="integer"),
+     *                 @OA\Property(property="status", type="string")
+     *             ),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Invalid payment status or refund amount.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Invalid payment status or refund amount."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Payment not found.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Payment not found."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="object", nullable=true)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Failed to process refund.",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="error"),
+     *             @OA\Property(property="message", type="string", example="Failed to process refund."),
+     *             @OA\Property(property="data", type="object", nullable=true),
+     *             @OA\Property(property="errors", type="string", example="Error message")
+     *         )
+     *     )
+     * )
+     */
+    public function refundPayment(string $id)
+    {
+        try {
+            $payment = Payment::findOrFail($id);
+
+            if ($payment->status !== 'PAID') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid payment status for refund.',
+                    'data' => null,
+                    'errors' => null
+                ], 400);
+            }
+
+            $amountInCents = (int) ($payment->amount * 100);
+
+            $url = config('pagseguro.environment') === 'sandbox' ?
+                config('pagseguro.baseUrlSandBox') . "/charges/{$payment->charge_id}/cancel" :
+                config('pagseguro.baseUrl') . "/charges/{$payment->charge_id}/cancel";
+
+            $token = config('pagseguro.environment') === 'sandbox' ?
+                config('pagseguro.tokenSandBox') :
+                config('pagseguro.token');
+
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer " . $token,
+                'Content-Type' => 'application/json',
+                'Accept' => '*/*',
+            ])->post($url, [
+                'amount' => ['value' => $amountInCents]
+            ]);
+
+            if ($response->successful()) {
+                $responseData = $response->json();
+                $payment->update([
+                    'status' => 'REFUNDED'
+                ]);
+
+                $payment->reservation->update([
+                    'status' => $responseData['status']
+                ]);
+
+                return response()->json([
+                    'status' => 'success',
+                    'message' => 'Payment successfully refunded.',
+                    'data' => [
+                        'payment_id' => $payment->id,
+                        'status' => $payment->status
+                    ],
+                    'errors' => null
+                ], 200);
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Failed to process refund.',
+                    'data' => null,
+                    'errors' => $response->json()
+                ], 500);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Payment not found or failed to process refund.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
 }
