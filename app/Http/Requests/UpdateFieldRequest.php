@@ -9,56 +9,19 @@ use Illuminate\Foundation\Http\FormRequest;
  *     schema="UpdateFieldRequest",
  *     type="object",
  *     title="Update Field Request",
- *     @OA\Property(
- *         property="name",
- *         type="string",
- *         description="Name of the field",
- *         example="Soccer Field"
- *     ),
- *     @OA\Property(
- *         property="location",
- *         type="string",
- *         description="Location of the field",
- *         example="Downtown Park"
- *     ),
- *     @OA\Property(
- *         property="type",
- *         type="string",
- *         description="Type of the field",
- *         example="Soccer"
- *     ),
- *     @OA\Property(
- *         property="hourly_rate",
- *         type="number",
- *         format="float",
- *         description="Hourly rate for renting the field",
- *         example=50.00
- *     ),
- *     @OA\Property(
- *         property="status",
- *         type="string",
- *         description="Field status: active or inactive",
- *         example="active"
- *     ),
- *     @OA\Property(
- *         property="images",
- *         type="array",
- *         description="Array of image files",
- *         @OA\Items(
- *             type="string",
- *             format="binary",
- *             description="Image file"
- *         )
- *     ),
- *     @OA\Property(
- *         property="image_ids",
- *         type="array",
- *         description="Array of image IDs",
- *         @OA\Items(
- *             type="integer",
- *             description="ID of the image"
- *         )
- *     )
+ *     @OA\Property(property="name", type="string", description="Name of the field", example="Soccer Field"),
+ *     @OA\Property(property="location", type="object", description="Location of the field", example={"lat": -8.6855317, "lng": -35.5914402}),
+ *     @OA\Property(property="type", type="string", description="Type of the field", example="Soccer"),
+ *     @OA\Property(property="hourly_rate", type="number", format="float", description="Hourly rate for renting the field", example=50.00),
+ *     @OA\Property(property="cep", type="string", description="Postal code", example="12345-678"),
+ *     @OA\Property(property="district", type="string", description="District", example="Centro"),
+ *     @OA\Property(property="address", type="string", description="Address", example="Rua ABC"),
+ *     @OA\Property(property="number", type="string", description="Address number", example="123"),
+ *     @OA\Property(property="city", type="string", description="City", example="São Paulo"),
+ *     @OA\Property(property="uf", type="string", description="State", example="SP"),
+ *     @OA\Property(property="complement", type="string", description="Address complement", nullable=true, example="Apt 101"),
+ *     @OA\Property(property="images", type="array", description="Array of image files", @OA\Items(type="string", format="binary", description="Image file")),
+ *     @OA\Property(property="image_ids", type="array", description="Array of image IDs", @OA\Items(type="integer", description="ID of the image"))
  * )
  */
 class UpdateFieldRequest extends FormRequest
@@ -80,9 +43,18 @@ class UpdateFieldRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:100',
-            'location' => 'sometimes|string|max:255',
+            'location' => 'sometimes|array',
+            'location.lat' => 'sometimes|numeric',
+            'location.lng' => 'sometimes|numeric',
             'type' => 'sometimes|string|max:50',
             'hourly_rate' => 'sometimes|numeric|between:0,99999.99',
+            'cep' => 'sometimes|string|max:10',
+            'district' => 'sometimes|string|max:100',
+            'address' => 'sometimes|string|max:255',
+            'number' => 'sometimes|string|max:10',
+            'city' => 'sometimes|string|max:100',
+            'uf' => 'sometimes|string|max:2',
+            'complement' => 'nullable|string|max:255',
             'status' => 'sometimes|string|in:active,inactive',
             'images' => 'sometimes|array|max:5',
             'images.*' => 'sometimes|image|mimes:jpg,jpeg,png|max:2048',

@@ -10,41 +10,18 @@ use Illuminate\Foundation\Http\FormRequest;
  *     type="object",
  *     title="Store Field Request",
  *     required={"name", "location", "type", "hourly_rate"},
- *     @OA\Property(
- *         property="name",
- *         type="string",
- *         description="Name of the field",
- *         example="Soccer Field"
- *     ),
- *     @OA\Property(
- *         property="location",
- *         type="string",
- *         description="Location of the field",
- *         example="Downtown Park"
- *     ),
- *     @OA\Property(
- *         property="type",
- *         type="string",
- *         description="Type of the field",
- *         example="Soccer"
- *     ),
- *     @OA\Property(
- *         property="hourly_rate",
- *         type="number",
- *         format="float",
- *         description="Hourly rate for renting the field",
- *         example=50.00
- *     ),
- *     @OA\Property(
- *         property="images",
- *         type="array",
- *         description="Array of images",
- *         @OA\Items(
- *             type="string",
- *             format="binary",
- *             description="Image file"
- *         )
- *     )
+ *     @OA\Property(property="name", type="string", description="Name of the field", example="Soccer Field"),
+ *     @OA\Property(property="location", type="object", description="Location of the field", example={"lat": -8.6855317, "lng": -35.5914402}),
+ *     @OA\Property(property="type", type="string", description="Type of the field", example="Soccer"),
+ *     @OA\Property(property="hourly_rate", type="number", format="float", description="Hourly rate for renting the field", example=50.00),
+ *     @OA\Property(property="cep", type="string", description="Postal code", example="12345-678"),
+ *     @OA\Property(property="district", type="string", description="District", example="Centro"),
+ *     @OA\Property(property="address", type="string", description="Address", example="Rua ABC"),
+ *     @OA\Property(property="number", type="string", description="Address number", example="123"),
+ *     @OA\Property(property="city", type="string", description="City", example="São Paulo"),
+ *     @OA\Property(property="uf", type="string", description="State", example="SP"),
+ *     @OA\Property(property="complement", type="string", description="Address complement", nullable=true, example="Apt 101"),
+ *     @OA\Property(property="images", type="array", description="Array of images", @OA\Items(type="string", format="binary", description="Image file"))
  * )
  */
 class StoreFieldRequest extends FormRequest
@@ -66,9 +43,18 @@ class StoreFieldRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:100',
-            'location' => 'required|string|max:255',
+            'location' => 'required|array',
+            'location.lat' => 'required|numeric',
+            'location.lng' => 'required|numeric',
             'type' => 'required|string|max:50',
             'hourly_rate' => 'required|numeric|between:0,99999.99',
+            'cep' => 'required|string|max:10',
+            'district' => 'required|string|max:100',
+            'address' => 'required|string|max:255',
+            'number' => 'required|string|max:10',
+            'city' => 'required|string|max:100',
+            'uf' => 'required|string|max:2',
+            'complement' => 'nullable|string|max:255',
             'images' => 'nullable|array|max:5',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ];
@@ -81,17 +67,15 @@ class StoreFieldRequest extends FormRequest
     {
         return [
             'name.required' => 'The field name is required.',
-            'name.string' => 'The field name must be a string.',
-            'name.max' => 'The field name may not be greater than 100 characters.',
             'location.required' => 'The field location is required.',
-            'location.string' => 'The field location must be a string.',
-            'location.max' => 'The field location may not be greater than 255 characters.',
             'type.required' => 'The field type is required.',
-            'type.string' => 'The field type must be a string.',
-            'type.max' => 'The field type may not be greater than 50 characters.',
             'hourly_rate.required' => 'The hourly rate is required.',
-            'hourly_rate.numeric' => 'The hourly rate must be a number.',
-            'hourly_rate.between' => 'The hourly rate must be between 0 and 99999.99.',
+            'cep.required' => 'The postal code is required.',
+            'district.required' => 'The district is required.',
+            'address.required' => 'The address is required.',
+            'number.required' => 'The number is required.',
+            'city.required' => 'The city is required.',
+            'uf.required' => 'The state is required.',
             'images.array' => 'The images must be an array.',
             'images.max' => 'You may not upload more than 5 images.',
             'images.*.image' => 'Each file must be an image.',

@@ -187,36 +187,25 @@ class FieldController extends Controller
      *             mediaType="multipart/form-data",
      *             @OA\Schema(
      *                 type="object",
-     *                 required={"name", "location", "type", "hourly_rate"},
-     *                 @OA\Property(
-     *                     property="name",
-     *                     type="string",
-     *                     description="The name of the field"
+     *                 required={"name", "location", "type", "hourly_rate", "cep", "district", "address", "number", "city", "uf"},
+     *                 @OA\Property(property="name", type="string", description="The name of the field"),
+     *                 @OA\Property(property="location", type="object", description="The location of the field with latitude and longitude",
+     *                     @OA\Property(property="lat", type="number", format="float"),
+     *                     @OA\Property(property="lng", type="number", format="float")
      *                 ),
-     *                 @OA\Property(
-     *                     property="location",
-     *                     type="string",
-     *                     description="The location of the field"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="type",
-     *                     type="string",
-     *                     description="The type of the field"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="hourly_rate",
-     *                     type="number",
-     *                     format="float",
-     *                     description="The hourly rate for renting the field"
-     *                 ),
+     *                 @OA\Property(property="type", type="string", description="The type of the field"),
+     *                 @OA\Property(property="hourly_rate", type="number", format="float", description="The hourly rate for renting the field"),
+     *                 @OA\Property(property="cep", type="string", description="The postal code of the field"),
+     *                 @OA\Property(property="district", type="string", description="The district of the field"),
+     *                 @OA\Property(property="address", type="string", description="The address of the field"),
+     *                 @OA\Property(property="number", type="string", description="The address number of the field"),
+     *                 @OA\Property(property="city", type="string", description="The city where the field is located"),
+     *                 @OA\Property(property="uf", type="string", description="The state where the field is located"),
+     *                 @OA\Property(property="complement", type="string", description="Additional address information", nullable=true),
      *                 @OA\Property(
      *                     property="images[]",
      *                     type="array",
-     *                     @OA\Items(
-     *                         type="string",
-     *                         format="binary",
-     *                         description="An image file"
-     *                     ),
+     *                     @OA\Items(type="string", format="binary", description="An image file"),
      *                     description="Array of image files"
      *                 )
      *             )
@@ -225,7 +214,12 @@ class FieldController extends Controller
      *     @OA\Response(
      *         response=201,
      *         description="Field created successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Field")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Field created successfully."),
+     *             @OA\Property(property="data", ref="#/components/schemas/Field"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=400,
@@ -264,12 +258,7 @@ class FieldController extends Controller
         $validatedData = $request->validated();
 
         try {
-            $field = new Field([
-                'name' => $validatedData['name'],
-                'location' => $validatedData['location'],
-                'type' => $validatedData['type'],
-                'hourly_rate' => $validatedData['hourly_rate'],
-            ]);
+            $field = new Field($validatedData);
             $field->save();
 
             if ($request->hasFile('images')) {
@@ -413,63 +402,33 @@ class FieldController extends Controller
      *             @OA\Schema(
      *                 type="object",
      *                 required={"_method"},
-     *                 @OA\Property(
-     *                     property="_method",
-     *                     type="string",
-     *                     enum={"PATCH"},
-     *                     default="PATCH",
-     *                     description="This field is required and must be set to PATCH"
+     *                 @OA\Property(property="_method", type="string", enum={"PATCH"}, default="PATCH", description="This field is required and must be set to PATCH"),
+     *                 @OA\Property(property="name", type="string", nullable=true, description="The name of the field"),
+     *                 @OA\Property(property="location", type="object", nullable=true, description="The location of the field with latitude and longitude",
+     *                     @OA\Property(property="lat", type="number", format="float"),
+     *                     @OA\Property(property="lng", type="number", format="float")
      *                 ),
-     *                 @OA\Property(
-     *                     property="name",
-     *                     type="string",
-     *                     default="",
-     *                     nullable=true,
-     *                     description="The name of the field"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="location",
-     *                     type="string",
-     *                     default="",
-     *                     nullable=true,
-     *                     description="The location of the field"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="type",
-     *                     type="string",
-     *                     default="",
-     *                     nullable=true,
-     *                     description="The type of the field"
-     *                 ),
-     *                 @OA\Property(
-     *                     property="hourly_rate",
-     *                     type="number",
-     *                     format="float",
-     *                     default="",
-     *                     nullable=true,
-     *                     description="The hourly rate for renting the field"
-     *                 ),
+     *                 @OA\Property(property="type", type="string", nullable=true, description="The type of the field"),
+     *                 @OA\Property(property="hourly_rate", type="number", format="float", nullable=true, description="The hourly rate for renting the field"),
+     *                 @OA\Property(property="cep", type="string", nullable=true, description="The postal code of the field"),
+     *                 @OA\Property(property="district", type="string", nullable=true, description="The district of the field"),
+     *                 @OA\Property(property="address", type="string", nullable=true, description="The address of the field"),
+     *                 @OA\Property(property="number", type="string", nullable=true, description="The address number of the field"),
+     *                 @OA\Property(property="city", type="string", nullable=true, description="The city where the field is located"),
+     *                 @OA\Property(property="uf", type="string", nullable=true, description="The state where the field is located"),
+     *                 @OA\Property(property="complement", type="string", nullable=true, description="Additional address information"),
      *                 @OA\Property(
      *                     property="images[]",
      *                     type="array",
      *                     nullable=true,
-     *                     @OA\Items(
-     *                         type="string",
-     *                         format="binary",
-     *                         description="An image file"
-     *                     ),
-     *                     default={},
+     *                     @OA\Items(type="string", format="binary", description="An image file"),
      *                     description="Array of image files"
      *                 ),
      *                 @OA\Property(
      *                     property="image_ids[]",
      *                     type="array",
      *                     nullable=true,
-     *                     @OA\Items(
-     *                         type="integer",
-     *                         description="ID of the image to be replaced"
-     *                     ),
-     *                     default={},
+     *                     @OA\Items(type="integer", description="ID of the image to be replaced"),
      *                     description="Array of image IDs to be replaced"
      *                 )
      *             )
@@ -478,7 +437,12 @@ class FieldController extends Controller
      *     @OA\Response(
      *         response=200,
      *         description="Field updated successfully",
-     *         @OA\JsonContent(ref="#/components/schemas/Field")
+     *         @OA\JsonContent(
+     *             @OA\Property(property="status", type="string", example="success"),
+     *             @OA\Property(property="message", type="string", example="Field updated successfully."),
+     *             @OA\Property(property="data", ref="#/components/schemas/Field"),
+     *             @OA\Property(property="errors", type="null")
+     *         )
      *     ),
      *     @OA\Response(
      *         response=400,
