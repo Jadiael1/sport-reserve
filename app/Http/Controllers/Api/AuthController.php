@@ -76,6 +76,14 @@ class AuthController extends Controller
                 ], 403);
             }
             */
+            if (!$user->active) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Your account is inactive. Please contact support for assistance.',
+                    'data' => null,
+                    'errors' => null
+                ], 403);
+            }
 
             $tokenResult = $user->createToken('auth_token');
             $token = $tokenResult->plainTextToken;
