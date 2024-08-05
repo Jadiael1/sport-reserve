@@ -43,9 +43,7 @@ class StoreFieldRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:100',
-            'location' => 'required|array',
-            'location.lat' => 'required|numeric',
-            'location.lng' => 'required|numeric',
+            'location' => 'required|string|max:255',
             'type' => 'required|string|max:50',
             'hourly_rate' => 'required|numeric|between:0,99999.99',
             'cep' => 'required|string|max:10',
@@ -68,6 +66,8 @@ class StoreFieldRequest extends FormRequest
         return [
             'name.required' => 'The field name is required.',
             'location.required' => 'The field location is required.',
+            'location.string' => 'The location must be a string.',
+            'location.max' => 'The location may not be greater than 255 characters.',
             'type.required' => 'The field type is required.',
             'hourly_rate.required' => 'The hourly rate is required.',
             'cep.required' => 'The postal code is required.',

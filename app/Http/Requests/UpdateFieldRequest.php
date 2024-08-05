@@ -43,9 +43,7 @@ class UpdateFieldRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:100',
-            'location' => 'sometimes|array',
-            'location.lat' => 'sometimes|numeric',
-            'location.lng' => 'sometimes|numeric',
+            'location' => 'sometimes|string|max:255',
             'type' => 'sometimes|string|max:50',
             'hourly_rate' => 'sometimes|numeric|between:0,99999.99',
             'cep' => 'sometimes|string|max:10',
