@@ -51,7 +51,7 @@ class UpdateFieldRequest extends FormRequest
             'address' => 'sometimes|string|max:255',
             'number' => 'sometimes|string|max:10',
             'city' => 'sometimes|string|max:100',
-            'uf' => 'sometimes|string|max:2',
+            'uf' => 'sometimes|string|max:100',
             'complement' => 'nullable|string|max:255',
             'status' => 'sometimes|string|in:active,inactive',
             'images' => 'sometimes|array|max:5',

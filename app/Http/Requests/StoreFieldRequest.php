@@ -51,7 +51,7 @@ class StoreFieldRequest extends FormRequest
             'address' => 'required|string|max:255',
             'number' => 'required|string|max:10',
             'city' => 'required|string|max:100',
-            'uf' => 'required|string|max:2',
+            'uf' => 'required|string|max:100',
             'complement' => 'nullable|string|max:255',
             'images' => 'nullable|array|max:5',
             'images.*' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
