@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\FieldAvailability;
 
 /**
  * @OA\Schema(
@@ -93,6 +94,21 @@ class UpdateFieldRequest extends FormRequest
             'image_ids.*.integer' => 'Each image ID must be an integer.',
             'image_ids.*.exists' => 'Each image ID must exist in the field_images table.',
         ];
+    }
+
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            // Verificar se o status está sendo alterado para "active"
+            if ($this->status === 'active') {
+                $fieldId = $this->route('id');
+                // Verificar se o campo possui pelo menos uma disponibilidade
+                $availabilityCount = FieldAvailability::Where('field_id', $fieldId)->count();
+                if ($availabilityCount === 0) {
+                    $validator->errors()->add('status', 'Field must have at least one availability to be set as active.');
+                }
+            }
+        });
     }
 
     protected function prepareForValidation()
