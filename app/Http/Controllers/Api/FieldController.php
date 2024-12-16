@@ -132,7 +132,7 @@ class FieldController extends Controller
                 $fields = Field::with(['images'])
                     ->orderByRaw("CASE WHEN status = 'active' THEN 0 ELSE 1 END")
                     ->orderBy($sortBy, $sortOrder)
-                    ->where('status', '!=', 'inactive')
+                    ->where('status', 'active')
                     ->paginate($perPage);
             }
 
