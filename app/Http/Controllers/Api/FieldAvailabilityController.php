@@ -273,7 +273,7 @@ use Laravel\Sanctum\PersonalAccessToken;
  *         @OA\JsonContent(
  *             @OA\Property(property="status", type="string", example="error"),
  *             @OA\Property(property="message", type="string", example="Field availability not found."),
- *             @OA\Property(property="data", type="array", example={}),
+ *             @OA\Property(property="data", type="array", @OA\Items(ref="example={}")),
  *             @OA\Property(property="errors", type="null")
  *         )
  *     ),
