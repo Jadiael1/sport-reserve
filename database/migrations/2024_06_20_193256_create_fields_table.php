@@ -17,7 +17,7 @@ return new class extends Migration
             $table->json('location')->comment("Field location with latitude and longitude");
             $table->string('type', 50)->comment("Field type (e.g., soccer, basketball)");
             $table->decimal('hourly_rate', 8, 2)->comment('Hourly rate for renting the field');
-            $table->string('status', 20)->default('active')->comment("Field status: active or inactive");
+            $table->string('status', 20)->default('inactive')->comment("Field status: active or inactive");
             $table->string('cep', 10)->comment("Field postal code");
             $table->string('district', 100)->comment("Field district");
             $table->string('address', 255)->comment("Field address");
