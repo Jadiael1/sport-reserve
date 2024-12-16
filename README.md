@@ -133,6 +133,18 @@ php artisan test
     php artisan migrate --seed
     ```
 
+5. Execute a geração do swagger:
+
+    ```sh
+    php artisan l5-swagger:generate
+    ```
+
+6. Execute a criação do link simbolico:
+
+    ```sh
+    php artisan storage:link
+    ```
+
 6. Inicie o servidor:
 
     ```sh
