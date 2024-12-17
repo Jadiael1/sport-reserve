@@ -265,4 +265,72 @@ class ReservationController extends Controller
             ], 500);
         }
     }
+
+    public function filterByDay(Request $request)
+    {
+        try {
+            // Verifica se o usuário é administrador
+            if (!Auth::user()->is_admin) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Access denied. Only administrators can access this endpoint.',
+                    'data' => null,
+                    'errors' => null
+                ], 403);
+            }
+
+            // Validação dos parâmetros
+            $validated = $request->validate([
+                'day_of_week' => 'required|string|in:sunday,monday,tuesday,wednesday,thursday,friday,saturday',
+                'status' => 'nullable|string|in:WAITING,CANCELED,PAID',
+            ]);
+
+            $dayOfWeek = strtolower($validated['day_of_week']);
+            $status = $validated['status'] ?? 'PAID'; // Default para 'PAID'
+
+            // Definir o intervalo de datas baseado no dia da semana
+            $now = Carbon::now('America/Recife');
+            $startOfWeek = $now->startOfWeek(Carbon::SUNDAY); // Define o domingo como início da semana
+            $targetDay = $startOfWeek->copy()->addDays(array_search($dayOfWeek, ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']));
+
+            $startOfDay = $targetDay->copy()->startOfDay();
+            $endOfDay = $targetDay->copy()->endOfDay();
+
+            // Query de reservas
+            $reservations = Reservation::with(['field', 'user', 'payments'])
+                ->whereBetween('start_time', [$startOfDay, $endOfDay])
+                ->when($status, function ($query) use ($status) {
+                    if ($status === 'WAITING') {
+                        return $query->where('status', 'WAITING')
+                            ->whereDoesntHave('payments', function ($q) {
+                                $q->where('status', 'PAID');
+                            });
+                    } elseif ($status === 'CANCELED') {
+                        return $query->where('status', 'CANCELED');
+                    } else {
+                        return $query->where('status', 'PAID')
+                            ->whereHas('payments', function ($q) {
+                                $q->where('status', 'PAID');
+                            });
+                    }
+                })
+                ->orderBy('start_time', 'asc')
+                ->get();
+
+            // Retorno da API
+            return response()->json([
+                'status' => 'success',
+                'message' => "Reservations for {$dayOfWeek} successfully retrieved.",
+                'data' => $reservations,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve reservations by day.',
+                'data' => null,
+                'errors' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

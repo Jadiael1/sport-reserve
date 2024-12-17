@@ -40,6 +40,7 @@ Route::prefix('v1')->group(function () {
         // Rotas para o recurso de reservas
         Route::middleware(['verified'])->prefix('reservations')->group(function () {
             Route::get('/', [ReservationController::class, 'index'])->name('reservations.index');
+            Route::middleware(['verified', 'admin'])->get('/day-filter', [ReservationController::class, 'filterByDay'])->name('reservations.filter_by_day');
             Route::post('/', [ReservationController::class, 'store'])->name('reservations.store');
             Route::get('/{id}', [ReservationController::class, 'show'])->name('reservations.show');
             Route::patch('/{id}', [ReservationController::class, 'update'])->name('reservations.update');
