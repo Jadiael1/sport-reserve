@@ -66,7 +66,7 @@ Route::prefix('v1')->group(function () {
         Route::middleware(['auth:sanctum', 'verified', 'admin'])->get('/{id}', [PaymentController::class, 'show'])->name('payments.show');
         Route::middleware(['auth:sanctum', 'verified', 'admin'])->patch('/{id}', [PaymentController::class, 'update'])->name('payments.update');
         Route::middleware(['auth:sanctum', 'verified', 'admin'])->delete('/{id}', [PaymentController::class, 'destroy'])->name('payments.destroy');
-        Route::middleware(['auth:sanctum', 'verified', 'admin'])->post('/reservations/{id}/pay', [PaymentController::class, 'store'])->name('payments.store');
+        Route::middleware(['auth:sanctum', 'verified'])->post('/reservations/{id}/pay', [PaymentController::class, 'store'])->name('payments.store');
         Route::middleware(['auth:sanctum', 'verified', 'admin'])->post('/checkouts/{checkout_id}/toggle', [PaymentController::class, 'toggleCheckoutStatus'])->name('payments.toggleCheckoutStatus');
         Route::middleware(['auth:sanctum', 'verified', 'admin'])->post('/{id}/refund', [PaymentController::class, 'refundPayment'])->name('payments.refundPayment');
         Route::post('/notify', [PaymentController::class, 'paymentNotification']);
