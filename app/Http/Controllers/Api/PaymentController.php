@@ -105,7 +105,7 @@ class PaymentController extends Controller
             if ($payment) {
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Payment link generated successfully..',
+                    'message' => 'Payment link generated successfully.',
                     'data' => array('url' => $payment->url),
                     'errors' => null
                 ], 200);
