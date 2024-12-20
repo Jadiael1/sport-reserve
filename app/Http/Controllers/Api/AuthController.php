@@ -21,6 +21,46 @@ class AuthController extends Controller
             'email' => ['required', 'email'],
             'password' => ['required'],
         ]);
+        try {
+            $recaptcha = new \ReCaptcha\ReCaptcha(env('GOOGLE_RECAPTCHA_V3_SECRET_KEY'));
+            $response = $recaptcha->setExpectedAction('signin')
+                ->setScoreThreshold(0.5)
+                ->verify($request->recaptchaToken);
+                
+            if (!$response->isSuccess()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'reCAPTCHA validation failed.',
+                    'data' => null,
+                    'errors' => $response->getErrorCodes(),
+                ], 403);
+            }
+
+            if ($response->getAction() !== 'signin') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unexpected reCAPTCHA action.',
+                    'data' => null,
+                    'errors' => null,
+                ], 403);
+            }
+
+            if ($response->getScore() < 0.5) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Low reCAPTCHA score.',
+                    'data' => null,
+                    'errors' => ['score' => $response->getScore()],
+                ], 403);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'reCAPTCHA verification error.',
+                'data' => null,
+                'errors' => $e->getMessage(),
+            ], 500);
+        }
 
         if (Auth::attempt($credentials)) {
             /** @var \App\Models\User $user **/
