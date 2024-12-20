@@ -3,6 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\ValidCpf;
+use App\Rules\ValidPhone;
 
 /**
  * @OA\Schema(
@@ -76,8 +78,20 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name' => 'required|string|max:255',
-            'cpf' => 'required|string|size:11|unique:users,cpf',
-            'phone' => 'required|string|max:15|unique:users,phone',
+            'cpf' => [
+                'required',
+                'string',
+                'size:11',
+                'unique:users,cpf',
+                new ValidCpf(),
+            ],
+            'phone' => [
+                'required',
+                'string',
+                'max:15',
+                'unique:users,phone',
+                new ValidPhone(),
+            ],
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
             'is_admin' => 'sometimes|boolean',
