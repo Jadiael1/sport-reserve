@@ -72,6 +72,17 @@ class UserController extends Controller
      */
     public function store(StoreUserRequest $request)
     {
+        $recaptcha = new \ReCaptcha\ReCaptcha(env("GOOGLE_RECAPTCHA_V2_SECRET_KEY"));
+        $response = $recaptcha->verify($request->recaptcha_token);
+        if (!$response->isSuccess()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'reCAPTCHA verification failed',
+                'data' => null,
+                'errors' => $response->getErrorCodes()
+            ], 400);
+        }
+
         $validatedData = $request->validated();
         $currentUser = Auth::user();
 
